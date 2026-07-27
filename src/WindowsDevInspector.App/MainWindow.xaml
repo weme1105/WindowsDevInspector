@@ -1,12 +1,409 @@
-﻿<Window x:Class="WindowsDevInspector.App.MainWindow"
+<Window x:Class="WindowsDevInspector.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WindowsDevInspector.App"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="WindowsDevInspector"
+        MinHeight="720"
+        MinWidth="1180"
+        Height="800"
+        Width="1280"
+        Background="#F5F7FA">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#162033" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style TargetType="Expander">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </Window.Resources>
 
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Background="#FFFFFF"
+                BorderBrush="#D7DEE8"
+                BorderThickness="0,0,1,0"
+                Padding="22">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="WindowsDevInspector"
+                               FontSize="22"
+                               FontWeight="Bold" />
+                    <TextBlock Text="Windows 開發環境檢查"
+                               Margin="0,4,0,22"
+                               Foreground="#5D6B82" />
+
+                    <TextBlock Text="技術選擇"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,10" />
+
+                    <ScrollViewer MaxHeight="560" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Expander Header="前端" IsExpanded="True" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="JavaScript" />
+                                        <CheckBox Content="TypeScript" />
+                                        <CheckBox Content="HTML" />
+                                        <CheckBox Content="CSS" />
+                                        <CheckBox Content="Sass / SCSS" />
+                                        <CheckBox Content="React" />
+                                        <CheckBox Content="Next.js" />
+                                        <CheckBox Content="Vue" IsChecked="True" />
+                                        <CheckBox Content="Nuxt" />
+                                        <CheckBox Content="Angular" IsChecked="True" />
+                                        <CheckBox Content="Svelte" />
+                                        <CheckBox Content="SvelteKit" />
+                                        <CheckBox Content="SolidJS" />
+                                        <CheckBox Content="Qwik" />
+                                        <CheckBox Content="Astro" />
+                                        <CheckBox Content="Remix" />
+                                        <CheckBox Content="Vite" />
+                                        <CheckBox Content="webpack" />
+                                        <CheckBox Content="Rollup" />
+                                        <CheckBox Content="esbuild" />
+                                        <CheckBox Content="Parcel" />
+                                        <CheckBox Content="Tailwind CSS" />
+                                        <CheckBox Content="Bootstrap" />
+                                        <CheckBox Content="Material UI" />
+                                        <CheckBox Content="Storybook" />
+                                        <CheckBox Content="Node.js" />
+                                        <CheckBox Content="npm" />
+                                        <CheckBox Content="pnpm" />
+                                        <CheckBox Content="Yarn" />
+                                        <CheckBox Content="Playwright" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="後端" IsExpanded="True" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="C#" IsChecked="True" />
+                                        <CheckBox Content="C++" IsChecked="True" />
+                                        <CheckBox Content=".NET" />
+                                        <CheckBox Content="ASP.NET Core" />
+                                        <CheckBox Content="Java" />
+                                        <CheckBox Content="Spring Boot" />
+                                        <CheckBox Content="Kotlin" />
+                                        <CheckBox Content="Go" />
+                                        <CheckBox Content="Python" />
+                                        <CheckBox Content="Django" />
+                                        <CheckBox Content="FastAPI" />
+                                        <CheckBox Content="Flask" />
+                                        <CheckBox Content="Node.js" />
+                                        <CheckBox Content="Express" />
+                                        <CheckBox Content="NestJS" />
+                                        <CheckBox Content="Ruby" />
+                                        <CheckBox Content="Ruby on Rails" />
+                                        <CheckBox Content="PHP" />
+                                        <CheckBox Content="Laravel" />
+                                        <CheckBox Content="Rust" />
+                                        <CheckBox Content="Actix Web" />
+                                        <CheckBox Content="Elixir" />
+                                        <CheckBox Content="Phoenix" />
+                                        <CheckBox Content="Scala" />
+                                        <CheckBox Content="sbt" />
+                                        <CheckBox Content="gRPC" />
+                                        <CheckBox Content="GraphQL" />
+                                        <CheckBox Content="Redis" />
+                                        <CheckBox Content="RabbitMQ" />
+                                        <CheckBox Content="Apache Kafka" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="資料庫" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="Oracle Database" IsChecked="True" />
+                                        <CheckBox Content="SQL Server" IsChecked="True" />
+                                        <CheckBox Content="SQL Server LocalDB" />
+                                        <CheckBox Content="SQL Server Management Studio" />
+                                        <CheckBox Content="sqlcmd" />
+                                        <CheckBox Content="PostgreSQL" />
+                                        <CheckBox Content="pgAdmin" />
+                                        <CheckBox Content="MySQL" />
+                                        <CheckBox Content="MariaDB" />
+                                        <CheckBox Content="MySQL Workbench" />
+                                        <CheckBox Content="SQLite" />
+                                        <CheckBox Content="Oracle Client" />
+                                        <CheckBox Content="MongoDB" />
+                                        <CheckBox Content="MongoDB Shell" />
+                                        <CheckBox Content="Redis" />
+                                        <CheckBox Content="Elasticsearch" />
+                                        <CheckBox Content="OpenSearch" />
+                                        <CheckBox Content="Apache Cassandra" />
+                                        <CheckBox Content="Amazon DynamoDB" />
+                                        <CheckBox Content="Azure Cosmos DB" />
+                                        <CheckBox Content="Cloud Firestore" />
+                                        <CheckBox Content="Neo4j" />
+                                        <CheckBox Content="InfluxDB" />
+                                        <CheckBox Content="TimescaleDB" />
+                                        <CheckBox Content="ClickHouse" />
+                                        <CheckBox Content="Snowflake" />
+                                        <CheckBox Content="BigQuery" />
+                                        <CheckBox Content="Amazon Redshift" />
+                                        <CheckBox Content="dbt" />
+                                        <CheckBox Content="ODBC Driver" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="雲端 / DevOps" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="Docker" />
+                                        <CheckBox Content="Docker Desktop" />
+                                        <CheckBox Content="WSL" />
+                                        <CheckBox Content="Kubernetes" />
+                                        <CheckBox Content="kubectl" />
+                                        <CheckBox Content="Helm" />
+                                        <CheckBox Content="Terraform" />
+                                        <CheckBox Content="OpenTofu" />
+                                        <CheckBox Content="Ansible" />
+                                        <CheckBox Content="PowerShell 7" />
+                                        <CheckBox Content="Git" />
+                                        <CheckBox Content="GitHub CLI" />
+                                        <CheckBox Content="Azure CLI" />
+                                        <CheckBox Content="Azure Developer CLI" />
+                                        <CheckBox Content="AWS CLI" />
+                                        <CheckBox Content="Google Cloud CLI" />
+                                        <CheckBox Content="GitHub Actions" />
+                                        <CheckBox Content="Azure DevOps" />
+                                        <CheckBox Content="Jenkins" />
+                                        <CheckBox Content="GitLab CI" />
+                                        <CheckBox Content="Argo CD" />
+                                        <CheckBox Content="Prometheus" />
+                                        <CheckBox Content="Grafana" />
+                                        <CheckBox Content="OpenTelemetry" />
+                                        <CheckBox Content="Nginx" />
+                                        <CheckBox Content="Traefik" />
+                                        <CheckBox Content="Podman" />
+                                        <CheckBox Content="Minikube" />
+                                        <CheckBox Content="Kind" />
+                                        <CheckBox Content="winget" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="QA / 自動化" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="Playwright" />
+                                        <CheckBox Content="Selenium" />
+                                        <CheckBox Content="Cypress" />
+                                        <CheckBox Content="WebdriverIO" />
+                                        <CheckBox Content="Appium" />
+                                        <CheckBox Content="Postman" />
+                                        <CheckBox Content="Newman" />
+                                        <CheckBox Content="Insomnia" />
+                                        <CheckBox Content="Rest Assured" />
+                                        <CheckBox Content="k6" />
+                                        <CheckBox Content="JMeter" />
+                                        <CheckBox Content="Locust" />
+                                        <CheckBox Content="xUnit" />
+                                        <CheckBox Content="NUnit" />
+                                        <CheckBox Content="MSTest" />
+                                        <CheckBox Content="JUnit" />
+                                        <CheckBox Content="TestNG" />
+                                        <CheckBox Content="pytest" />
+                                        <CheckBox Content="Jest" />
+                                        <CheckBox Content="Vitest" />
+                                        <CheckBox Content="Testing Library" />
+                                        <CheckBox Content="Mock Service Worker" />
+                                        <CheckBox Content="Cucumber" />
+                                        <CheckBox Content="SpecFlow" />
+                                        <CheckBox Content="Allure Report" />
+                                        <CheckBox Content="SonarQube" />
+                                        <CheckBox Content="ESLint" />
+                                        <CheckBox Content="Prettier" />
+                                        <CheckBox Content="ReportPortal" />
+                                        <CheckBox Content="BrowserStack" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="Mobile" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="Android SDK" />
+                                        <CheckBox Content="Android Studio" />
+                                        <CheckBox Content="Android Emulator" />
+                                        <CheckBox Content="ADB" />
+                                        <CheckBox Content="Gradle" />
+                                        <CheckBox Content="Kotlin" />
+                                        <CheckBox Content="Java" />
+                                        <CheckBox Content="Flutter" />
+                                        <CheckBox Content="Dart" />
+                                        <CheckBox Content="React Native" />
+                                        <CheckBox Content="Expo" />
+                                        <CheckBox Content=".NET MAUI" />
+                                        <CheckBox Content="Xamarin" />
+                                        <CheckBox Content="Ionic" />
+                                        <CheckBox Content="Capacitor" />
+                                        <CheckBox Content="Cordova" />
+                                        <CheckBox Content="Firebase CLI" />
+                                        <CheckBox Content="Fastlane" />
+                                        <CheckBox Content="App Center CLI" />
+                                        <CheckBox Content="MAUI Check" />
+                                        <CheckBox Content="Visual Studio Android workload" />
+                                        <CheckBox Content="Node.js" />
+                                        <CheckBox Content="CocoaPods" />
+                                        <CheckBox Content="Swift" />
+                                        <CheckBox Content="Xcode Remote Build" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+
+                            <Expander Header="Desktop" FontWeight="SemiBold">
+                                <ScrollViewer MaxHeight="150" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <CheckBox Content="WPF" />
+                                        <CheckBox Content="WinUI 3" />
+                                        <CheckBox Content="Windows App SDK" />
+                                        <CheckBox Content=".NET Desktop Runtime" />
+                                        <CheckBox Content=".NET SDK" />
+                                        <CheckBox Content="Visual Studio" />
+                                        <CheckBox Content="Visual Studio Build Tools" />
+                                        <CheckBox Content="MSBuild" />
+                                        <CheckBox Content="Windows SDK" />
+                                        <CheckBox Content="MSIX Packaging Tool" />
+                                        <CheckBox Content="ClickOnce" />
+                                        <CheckBox Content="WiX Toolset" />
+                                        <CheckBox Content="CMake" />
+                                        <CheckBox Content="Ninja" />
+                                        <CheckBox Content="vcpkg" />
+                                        <CheckBox Content="MSVC" />
+                                        <CheckBox Content="Clang" />
+                                        <CheckBox Content="Qt" />
+                                        <CheckBox Content="Avalonia" />
+                                        <CheckBox Content="Uno Platform" />
+                                        <CheckBox Content="Electron" />
+                                        <CheckBox Content="Tauri" />
+                                        <CheckBox Content="PowerShell" />
+                                        <CheckBox Content="signtool" />
+                                        <CheckBox Content="WinDbg" />
+                                        <CheckBox Content="ProcMon" />
+                                        <CheckBox Content="Process Explorer" />
+                                        <CheckBox Content="Windows Terminal" />
+                                        <CheckBox Content="Developer Mode" />
+                                        <CheckBox Content="Long Paths" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom">
+                    <Button Content="開始檢查"
+                            Background="#2251A4"
+                            BorderBrush="#2251A4"
+                            Foreground="#FFFFFF" />
+                    <TextBlock Text="目前可先選擇技術；下一步會接上掃描流程。"
+                               TextWrapping="Wrap"
+                               Margin="0,12,0,0"
+                               Foreground="#6C778B" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="26">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="190" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <DockPanel Grid.Row="0" Margin="0,0,0,18">
+                <StackPanel>
+                    <TextBlock Text="檢查結果"
+                               FontSize="26"
+                               FontWeight="Bold" />
+                    <TextBlock Text="非 PASS 項目會優先顯示；PASS 項目會排在最後。"
+                               Foreground="#5D6B82"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+                <Border DockPanel.Dock="Right"
+                        Background="#EAF1FB"
+                        BorderBrush="#C7D8F2"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,7">
+                    <TextBlock Text="尚未掃描"
+                               Foreground="#2251A4"
+                               FontWeight="SemiBold" />
+                </Border>
+            </DockPanel>
+
+            <ListView Grid.Row="1"
+                      BorderBrush="#D7DEE8"
+                      BorderThickness="1"
+                      Background="#FFFFFF">
+                <ListViewItem>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="240" />
+                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Info" />
+                        <TextBlock Grid.Column="1" Text="System" />
+                        <TextBlock Grid.Column="2" Text="技術目錄已更新" />
+                        <TextBlock Grid.Column="3" Text="等待接上掃描器" />
+                        <TextBlock Grid.Column="4" Text="否" />
+                    </Grid>
+                </ListViewItem>
+            </ListView>
+
+            <Border Grid.Row="2"
+                    Background="#FFFFFF"
+                    BorderBrush="#D7DEE8"
+                    BorderThickness="1"
+                    Padding="18"
+                    Margin="0,18,0,0">
+                <StackPanel>
+                    <TextBlock Text="詳細資訊"
+                               FontSize="18"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="左側已改為多分類技術選擇：前端、後端、資料庫、雲端 / DevOps、QA / 自動化、Mobile、Desktop。每組最多先放 30 筆常見技術。"
+                               TextWrapping="Wrap"
+                               Margin="0,10,0,0"
+                               Foreground="#42516A" />
+                    <TextBlock Text="下一個切片會把選取項目轉成 CheckResult，未支援的技術會以 Info 顯示。"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#42516A" />
+                </StackPanel>
+            </Border>
+
+            <DockPanel Grid.Row="3" Margin="0,18,0,0">
+                <Button Content="批次修正"
+                        IsEnabled="False"
+                        DockPanel.Dock="Left" />
+                <Button Content="開始修正"
+                        IsEnabled="False"
+                        DockPanel.Dock="Right" />
+            </DockPanel>
+        </Grid>
     </Grid>
 </Window>
