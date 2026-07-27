@@ -105,6 +105,10 @@
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Bottom">
+                    <Button x:Name="SaveOptionsButton"
+                            Content="儲存選項"
+                            Click="SaveOptionsButton_Click"
+                            Margin="0,0,0,10" />
                     <Button x:Name="StartScanButton"
                             Content="開始檢查"
                             Click="StartScanButton_Click"

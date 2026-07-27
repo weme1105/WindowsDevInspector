@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using WindowsDevInspector.Core;
@@ -30,6 +31,12 @@ public partial class MainWindow : Window
         };
 
         DataContext = this;
+
+        int loadedTechnologyCount = TechnologySelectionConfig.Load(TechnologyGroups);
+        if (loadedTechnologyCount > 0)
+        {
+            ScanStatusTextBlock.Text = $"已載入 {loadedTechnologyCount} 個儲存選項";
+        }
     }
 
     public ObservableCollection<TechnologyGroup> TechnologyGroups { get; }
@@ -58,6 +65,23 @@ public partial class MainWindow : Window
         finally
         {
             StartScanButton.IsEnabled = true;
+        }
+    }
+
+    private void SaveOptionsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            int savedTechnologyCount = TechnologySelectionConfig.Save(TechnologyGroups);
+            ScanStatusTextBlock.Text = $"已儲存 {savedTechnologyCount} 個選項到 {TechnologySelectionConfig.FileName}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            ScanStatusTextBlock.Text = "儲存失敗：沒有權限寫入 exe 資料夾";
+        }
+        catch (IOException ex)
+        {
+            ScanStatusTextBlock.Text = $"儲存失敗：{ex.Message}";
         }
     }
 
