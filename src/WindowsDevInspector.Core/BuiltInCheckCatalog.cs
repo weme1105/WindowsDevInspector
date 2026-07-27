@@ -1,0 +1,184 @@
+namespace WindowsDevInspector.Core;
+
+public static class BuiltInCheckCatalog
+{
+    public static CheckCatalog Create()
+    {
+        return new CheckCatalog(CreateTechnologies(), CreateChecks());
+    }
+
+    private static IReadOnlyList<TechnologyDefinition> CreateTechnologies()
+    {
+        return [
+            Technology("nodejs", "Node.js", ["frontend", "backend", "qa", "mobile"], ["frontend.node-cli", "frontend.npm-cli"]),
+            Technology("npm", "npm", ["frontend"], ["frontend.npm-cli", "frontend.npm-global-prefix"]),
+            Technology("nvm", "nvm", ["frontend"], ["frontend.nvm"]),
+            Technology("pnpm", "pnpm", ["frontend"], ["frontend.pnpm-cli"]),
+            Technology("yarn", "Yarn", ["frontend"], ["frontend.yarn-cli"]),
+            Technology("angular", "Angular", ["frontend"], ["frontend.node-cli", "frontend.npm-cli", "frontend.angular-cli"]),
+            Technology("vue", "Vue", ["frontend"], ["frontend.node-cli", "frontend.npm-cli", "frontend.vite-cli"]),
+            Technology("vite", "Vite", ["frontend"], ["frontend.vite-cli"]),
+            Technology("playwright", "Playwright", ["frontend", "qa"], ["frontend.playwright-cli", "qa.playwright", "qa.browser-availability"]),
+            Technology("dotnet", ".NET", ["backend", "desktop"], ["backend.dotnet-cli", "backend.dotnet-sdk", "backend.dotnet-runtime"]),
+            Technology("netcore", ".NET Core", ["backend"], ["backend.dotnet-cli", "backend.dotnet-sdk", "backend.dotnet-runtime"]),
+            Technology("csharp", "C#", ["backend", "desktop"], ["backend.dotnet-cli", "backend.dotnet-sdk"]),
+            Technology("aspnetcore", "ASP.NET Core", ["backend"], ["backend.dotnet-cli", "backend.aspnet-runtime"]),
+            Technology("cpp", "C++", ["backend", "desktop"], ["backend.visualstudio-buildtools", "desktop.windows-sdk"]),
+            Technology("go", "Go", ["backend"], ["backend.go-cli", "backend.go-env"]),
+            Technology("python", "Python", ["backend", "qa"], ["backend.python-cli"]),
+            Technology("java", "Java", ["backend", "mobile"], ["backend.java-cli"]),
+            Technology("docker", "Docker", ["backend", "devops"], ["backend.docker-cli", "devops.docker-cli", "devops.docker-desktop", "devops.docker-service", "devops.wsl", "devops.winnat", "devops.hns"]),
+            Technology("jenkins", "Jenkins", ["devops"], ["devops.jenkins"]),
+            Technology("redis", "Redis", ["backend", "database"], ["backend.redis-cli"]),
+            Technology("sqlserver", "SQL Server", ["database"], ["database.sqlserver-tools", "database.sqlcmd-cli", "database.localdb", "database.odbc-driver", "database.ssms"]),
+            Technology("localdb", "SQL Server LocalDB", ["database"], ["database.localdb"]),
+            Technology("sqlcmd", "sqlcmd", ["database"], ["database.sqlcmd-cli"]),
+            Technology("postgresql", "PostgreSQL", ["database"], ["database.postgresql-cli"]),
+            Technology("mysql", "MySQL", ["database"], ["database.mysql-cli"]),
+            Technology("sqlite", "SQLite", ["database"], ["database.sqlite-cli"]),
+            Technology("oracle-db", "Oracle Database", ["database"], ["database.oracle-client"]),
+            Technology("odbc-driver", "ODBC Driver", ["database"], ["database.odbc-driver"]),
+            Technology("wsl", "WSL", ["devops"], ["devops.wsl", "devops.wsl-version", "devops.wsl-distros", "devops.virtual-machine-platform"]),
+            Technology("kubernetes", "Kubernetes", ["devops"], ["devops.kubectl", "devops.wsl", "devops.hns"]),
+            Technology("kubectl", "kubectl", ["devops"], ["devops.kubectl"]),
+            Technology("azure-cli", "Azure CLI", ["devops"], ["devops.azure-cli"]),
+            Technology("terraform", "Terraform", ["devops"], ["devops.terraform"]),
+            Technology("postman", "Postman", ["qa"], ["qa.postman"]),
+            Technology("newman", "Newman", ["qa"], ["qa.newman"]),
+            Technology("selenium", "Selenium", ["qa"], ["qa.selenium", "qa.browser-availability"]),
+            Technology("android-sdk", "Android SDK", ["mobile"], ["mobile.android-sdk", "mobile.adb"]),
+            Technology("flutter", "Flutter", ["mobile"], ["mobile.flutter", "mobile.android-sdk"]),
+            Technology("dotnet-maui", ".NET MAUI", ["mobile"], ["mobile.dotnet-maui", "backend.dotnet-cli"]),
+            Technology("wpf", "WPF", ["desktop"], ["desktop.dotnet-desktop-runtime", "backend.dotnet-cli"]),
+            Technology("winui3", "WinUI 3", ["desktop"], ["desktop.windows-sdk", "desktop.dotnet-desktop-runtime"]),
+            Technology("windows-sdk", "Windows SDK", ["desktop"], ["desktop.windows-sdk"]),
+            Technology("visual-studio", "Visual Studio", ["desktop"], ["desktop.visualstudio", "desktop.msbuild"]),
+            Technology("vscode", "Visual Studio Code", ["desktop"], ["desktop.vscode"]),
+            Technology("msbuild", "MSBuild", ["desktop"], ["desktop.msbuild"]),
+            Technology("cmake", "CMake", ["desktop"], ["desktop.cmake"]),
+            Technology("ninja", "Ninja", ["desktop"], ["desktop.ninja"]),
+            Technology("vcpkg", "vcpkg", ["desktop"], ["desktop.vcpkg"]),
+            Technology("developer-mode", "Developer Mode", ["desktop"], ["common.developer-mode"]),
+            Technology("long-paths", "Long Paths", ["desktop"], ["common.long-paths"]),
+            Technology("git", "Git", ["devops"], ["common.git"]),
+            Technology("winget", "winget", ["devops"], ["common.winget"]),
+            Technology("powershell7", "PowerShell 7", ["devops"], ["common.powershell7"])
+        ];
+    }
+
+    private static IReadOnlyList<CheckDefinition> CreateChecks()
+    {
+        return [
+            Check("common.windows-version", "Windows version and build", "Common"),
+            Check("common.path-invalid-entries", "PATH invalid entries", "Common", CheckSeverity.Warning),
+            Check("common.path-duplicate-entries", "PATH duplicate entries", "Common"),
+            Check("common.long-paths", "Long Paths enabled", "Common", CheckSeverity.Warning, true, RiskLevel.Low, true, false, true, "enable-long-paths"),
+            Check("common.developer-mode", "Developer Mode enabled", "Common", CheckSeverity.Warning, true, RiskLevel.Low, true, false, true, "enable-developer-mode"),
+            Check("common.directory-source", "D:\\Source exists", "Common", CheckSeverity.Warning, true, RiskLevel.Low, false, false, true, "create-source-directory"),
+            Check("common.directory-projects", "D:\\Projects exists", "Common", CheckSeverity.Warning, true, RiskLevel.Low, false, false, true, "create-projects-directory"),
+            Check("common.directory-gonote", "D:\\GoNote exists", "Common", CheckSeverity.Info, true, RiskLevel.Low, false, false, true, "create-gonote-directory"),
+            Check("common.powershell7", "PowerShell 7 CLI", "Common"),
+            Check("common.git", "Git CLI", "Common", CheckSeverity.Warning),
+            Check("common.winget", "winget CLI", "Common", CheckSeverity.Warning),
+            Check("frontend.node-cli", "Node.js CLI", "Frontend", CheckSeverity.Warning),
+            Check("frontend.npm-cli", "npm CLI", "Frontend", CheckSeverity.Warning),
+            Check("frontend.pnpm-cli", "pnpm CLI", "Frontend"),
+            Check("frontend.yarn-cli", "Yarn CLI", "Frontend"),
+            Check("frontend.angular-cli", "Angular CLI", "Frontend", CheckSeverity.Warning),
+            Check("frontend.vite-cli", "Vite CLI", "Frontend"),
+            Check("frontend.playwright-cli", "Playwright CLI", "Frontend"),
+            Check("frontend.npm-global-prefix", "npm global prefix", "Frontend"),
+            Check("frontend.nvm", "nvm", "Frontend"),
+            Check("backend.dotnet-cli", "dotnet CLI", "Backend", CheckSeverity.Warning),
+            Check("backend.dotnet-sdk", ".NET SDK version", "Backend", CheckSeverity.Warning),
+            Check("backend.dotnet-runtime", ".NET runtime version", "Backend"),
+            Check("backend.aspnet-runtime", "ASP.NET Core runtime", "Backend"),
+            Check("backend.nuget-sources", "NuGet sources", "Backend"),
+            Check("backend.visualstudio-buildtools", "Visual Studio / Build Tools", "Backend"),
+            Check("backend.go-cli", "Go CLI", "Backend", CheckSeverity.Warning),
+            Check("backend.go-env", "Go environment", "Backend"),
+            Check("backend.python-cli", "Python CLI", "Backend", CheckSeverity.Warning),
+            Check("backend.java-cli", "Java CLI", "Backend", CheckSeverity.Warning),
+            Check("backend.docker-cli", "Docker CLI", "Backend"),
+            Check("backend.redis-cli", "Redis CLI", "Backend"),
+            Check("database.sqlserver-tools", "SQL Server tooling", "Database"),
+            Check("database.sqlcmd-cli", "sqlcmd CLI", "Database", CheckSeverity.Warning),
+            Check("database.localdb", "SQL Server LocalDB", "Database"),
+            Check("database.ssms", "SQL Server Management Studio", "Database"),
+            Check("database.odbc-driver", "ODBC Driver", "Database"),
+            Check("database.postgresql-cli", "PostgreSQL CLI", "Database"),
+            Check("database.mysql-cli", "MySQL CLI", "Database"),
+            Check("database.sqlite-cli", "SQLite CLI", "Database"),
+            Check("database.oracle-client", "Oracle Client", "Database"),
+            Check("devops.docker-cli", "Docker CLI", "DevOps", CheckSeverity.Warning),
+            Check("devops.docker-desktop", "Docker Desktop", "DevOps", CheckSeverity.Warning),
+            Check("devops.wsl", "WSL installed", "DevOps", CheckSeverity.Warning),
+            Check("devops.wsl-version", "WSL version", "DevOps"),
+            Check("devops.wsl-distros", "WSL distributions", "DevOps"),
+            Check("devops.virtual-machine-platform", "Virtual Machine Platform", "DevOps"),
+            Check("devops.hyper-v", "Hyper-V", "DevOps"),
+            Check("devops.winnat", "WinNAT service", "DevOps"),
+            Check("devops.hns", "Host Network Service", "DevOps"),
+            Check("devops.kubectl", "kubectl CLI", "DevOps"),
+            Check("devops.azure-cli", "Azure CLI", "DevOps"),
+            Check("devops.terraform", "Terraform CLI", "DevOps"),
+            Check("devops.jenkins", "Jenkins CLI", "DevOps"),
+            Check("devops.docker-service", "Docker Desktop service", "DevOps"),
+            Check("qa.playwright", "Playwright availability", "QA"),
+            Check("qa.browser-availability", "Browser availability", "QA"),
+            Check("qa.selenium", "Selenium tooling", "QA"),
+            Check("qa.postman", "Postman", "QA"),
+            Check("qa.newman", "Newman CLI", "QA"),
+            Check("mobile.android-sdk", "Android SDK", "Mobile"),
+            Check("mobile.adb", "ADB CLI", "Mobile"),
+            Check("mobile.flutter", "Flutter CLI", "Mobile"),
+            Check("mobile.dotnet-maui", ".NET MAUI workload", "Mobile"),
+            Check("desktop.dotnet-desktop-runtime", ".NET Desktop Runtime", "Desktop"),
+            Check("desktop.windows-sdk", "Windows SDK", "Desktop"),
+            Check("desktop.visualstudio", "Visual Studio", "Desktop"),
+            Check("desktop.vscode", "Visual Studio Code", "Desktop"),
+            Check("desktop.msbuild", "MSBuild", "Desktop"),
+            Check("desktop.cmake", "CMake CLI", "Desktop"),
+            Check("desktop.ninja", "Ninja CLI", "Desktop"),
+            Check("desktop.vcpkg", "vcpkg", "Desktop")
+        ];
+    }
+
+    private static TechnologyDefinition Technology(string id, string name, IReadOnlyCollection<string> groupIds, IReadOnlyCollection<string> checkIds)
+    {
+        return new TechnologyDefinition
+        {
+            Id = id,
+            Name = name,
+            GroupIds = new HashSet<string>(groupIds, StringComparer.OrdinalIgnoreCase),
+            CheckIds = new HashSet<string>(checkIds, StringComparer.OrdinalIgnoreCase)
+        };
+    }
+
+    private static CheckDefinition Check(
+        string id,
+        string name,
+        string category,
+        CheckSeverity severityWhenMissing = CheckSeverity.Info,
+        bool canFix = false,
+        RiskLevel risk = RiskLevel.None,
+        bool requiresElevation = false,
+        bool requiresRestart = false,
+        bool supportsRollback = false,
+        string? remediationId = null)
+    {
+        return new CheckDefinition
+        {
+            Id = id,
+            Name = name,
+            Category = category,
+            SeverityWhenMissing = severityWhenMissing,
+            CanFix = canFix,
+            Risk = risk,
+            RequiresElevation = requiresElevation,
+            RequiresRestart = requiresRestart,
+            SupportsRollback = supportsRollback,
+            RemediationId = remediationId
+        };
+    }
+}

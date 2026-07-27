@@ -13,7 +13,7 @@
 ## Phase 1：唯讀掃描 MVP
 
 - [ ] Profile 選擇
-- [ ] Check catalog
+- [x] Check catalog (`docs/CHECK_CATALOG.md`)
 - [ ] Directory checks
 - [ ] Long Path check
 - [ ] Developer Mode check
