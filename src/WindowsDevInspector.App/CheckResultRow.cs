@@ -4,15 +4,29 @@ namespace WindowsDevInspector.App;
 
 public sealed class CheckResultRow(CheckResult result)
 {
+    private const int MaxCellLength = 160;
+
     public string Severity { get; } = result.Severity.ToString();
 
     public string Category { get; } = result.Category;
 
     public string Name { get; } = result.Name;
 
-    public string CurrentValue { get; } = result.CurrentValue;
+    public string CurrentValue { get; } = ToSingleLine(result.CurrentValue);
 
     public string CanFix { get; } = result.CanFix ? "是" : "否";
 
     public string Impact { get; } = result.Impact;
+
+    private static string ToSingleLine(string value)
+    {
+        string singleLine = value
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal)
+            .Trim();
+
+        return singleLine.Length <= MaxCellLength
+            ? singleLine
+            : string.Concat(singleLine.AsSpan(0, MaxCellLength), "...");
+    }
 }
