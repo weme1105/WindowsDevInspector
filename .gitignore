@@ -1,0 +1,53 @@
+# Build outputs
+bin/
+obj/
+artifacts/
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Visual Studio / Rider / VS Code local state
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# .NET local files
+.dotnet-home/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# Publish / package outputs
+*.nupkg
+*.snupkg
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+Thumbs.db
+Desktop.ini
+
+# Environment and secret files
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
