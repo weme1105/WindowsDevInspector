@@ -1,10 +1,14 @@
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Globalization;
+using System.Text;
 
 namespace WindowsDevInspector.Windows;
 
 public sealed class ProcessCommandRunner : ICommandRunner
 {
+    private static readonly Encoding ConsoleEncoding = GetConsoleEncoding();
+
     public async Task<CommandRunResult> RunAsync(string fileName, string arguments, TimeSpan timeout, CancellationToken cancellationToken)
     {
         using CancellationTokenSource timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -17,6 +21,8 @@ public sealed class ProcessCommandRunner : ICommandRunner
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = ConsoleEncoding,
+            StandardErrorEncoding = ConsoleEncoding,
             CreateNoWindow = true
         };
 
@@ -85,6 +91,22 @@ public sealed class ProcessCommandRunner : ICommandRunner
         }
         catch (InvalidOperationException)
         {
+        }
+    }
+
+    private static Encoding GetConsoleEncoding()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        int codePage = CultureInfo.CurrentCulture.TextInfo.OEMCodePage;
+
+        try
+        {
+            return Encoding.GetEncoding(codePage);
+        }
+        catch (ArgumentException)
+        {
+            return Encoding.UTF8;
         }
     }
 }
