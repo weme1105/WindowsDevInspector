@@ -22,6 +22,17 @@
         <Style TargetType="CheckBox">
             <Setter Property="Margin" Value="0,0,0,8" />
         </Style>
+        <Style x:Key="ResultCellTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="Foreground" Value="#162033" />
+        </Style>
+        <Style x:Key="ResultListViewItemStyle" TargetType="ListViewItem">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
         <Style TargetType="Expander">
             <Setter Property="Margin" Value="0,0,0,10" />
         </Style>
@@ -139,22 +150,55 @@
             </DockPanel>
 
             <ListView Grid.Row="1"
+                      x:Name="ResultsListView"
                       ItemsSource="{Binding Results}"
+                      ItemContainerStyle="{StaticResource ResultListViewItemStyle}"
                       BorderBrush="#D7DEE8"
                       BorderThickness="1"
                       Background="#FFFFFF">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="狀態" Width="90" DisplayMemberBinding="{Binding Severity}" />
-                        <GridViewColumn Header="分類" Width="150" DisplayMemberBinding="{Binding Category}" />
-                        <GridViewColumn Header="項目" Width="240" DisplayMemberBinding="{Binding Name}" />
-                        <GridViewColumn Header="目前值" Width="260" DisplayMemberBinding="{Binding CurrentValue}" />
-                        <GridViewColumn Header="修正" Width="100" DisplayMemberBinding="{Binding CanFix}" />
+                        <GridViewColumn Header="狀態" Width="90">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding Severity}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="分類" Width="150">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding Category}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="項目" Width="240">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding Name}" ToolTip="{Binding Name}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="目前值" Width="260">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding CurrentValue}" ToolTip="{Binding FullCurrentValue}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="修正" Width="100">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding CanFix}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                     </GridView>
                 </ListView.View>
             </ListView>
 
             <Border Grid.Row="2"
+                    DataContext="{Binding SelectedItem, ElementName=ResultsListView}"
                     Background="#FFFFFF"
                     BorderBrush="#D7DEE8"
                     BorderThickness="1"
@@ -164,14 +208,23 @@
                     <TextBlock Text="詳細資訊"
                                FontSize="18"
                                FontWeight="SemiBold" />
-                    <TextBlock Text="搜尋會把符合關鍵字的技術排到各分類最上方，不符合的項目會保留原始順序往下排。"
+                    <TextBlock Text="{Binding Name, TargetNullValue=請從結果列表選取一列}"
                                TextWrapping="Wrap"
                                Margin="0,10,0,0"
+                               FontWeight="SemiBold"
                                Foreground="#42516A" />
-                    <TextBlock Text="開始檢查後，已支援的技術會顯示支援狀態；未支援的技術會以 Info 顯示。"
+                    <TextBlock Text="{Binding FullCurrentValue, TargetNullValue=開始檢查後，選取結果列即可查看完整目前值。}"
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"
                                Foreground="#42516A" />
+                    <TextBlock Text="{Binding ExpectedValue, StringFormat=Expected: {0}}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding Impact, StringFormat=Impact: {0}}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
                 </StackPanel>
             </Border>
 

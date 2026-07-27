@@ -6,6 +6,8 @@ public sealed class CheckResultRow(CheckResult result)
 {
     private const int MaxCellLength = 160;
 
+    public string Id { get; } = result.Id;
+
     public string Severity { get; } = result.Severity.ToString();
 
     public string Category { get; } = result.Category;
@@ -13,6 +15,10 @@ public sealed class CheckResultRow(CheckResult result)
     public string Name { get; } = result.Name;
 
     public string CurrentValue { get; } = ToSingleLine(result.CurrentValue);
+
+    public string FullCurrentValue { get; } = result.CurrentValue;
+
+    public string ExpectedValue { get; } = result.ExpectedValue;
 
     public string CanFix { get; } = result.CanFix ? "是" : "否";
 
