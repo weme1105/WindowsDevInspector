@@ -53,7 +53,8 @@ public sealed class TechnologyGroup(string id, string name, IEnumerable<Technolo
 
         List<TechnologyItem> sorted = Technologies
             .OrderBy(technology => IsMatch(technology, query) ? 0 : 1)
-            .ThenBy(technology => technology.OriginalIndex)
+            .ThenBy(technology => technology.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(technology => technology.Id, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         Technologies.Clear();

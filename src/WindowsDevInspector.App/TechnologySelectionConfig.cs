@@ -73,9 +73,11 @@ public static class TechnologySelectionConfig
         string[] selectedTechnologyIds = groups
             .SelectMany(group => group.Technologies)
             .Where(technology => technology.IsSelected)
+            .GroupBy(technology => technology.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.OrderBy(technology => technology.Name, StringComparer.OrdinalIgnoreCase).First())
+            .OrderBy(technology => technology.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(technology => technology.Id, StringComparer.OrdinalIgnoreCase)
             .Select(technology => technology.Id)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         TechnologySelectionConfigModel config = new()

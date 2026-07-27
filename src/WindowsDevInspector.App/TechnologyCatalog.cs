@@ -66,6 +66,7 @@ public static class TechnologyCatalog
     private static TechnologyGroup CreateGroup(string id, string name, bool isExpanded, IReadOnlyList<TechnologyItem> technologies)
     {
         TechnologyItem[] indexedTechnologies = technologies
+            .OrderBy(technology => technology.Name, StringComparer.OrdinalIgnoreCase)
             .Select((technology, index) => new TechnologyItem(technology.Id, technology.Name, technology.IsSelected)
             {
                 OriginalIndex = index
