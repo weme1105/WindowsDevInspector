@@ -25,22 +25,22 @@
 
 ## Phase 2：第一批安全修正
 
-- [ ] Change Plan
-- [ ] Remediation whitelist
-- [ ] Elevated Worker
-- [ ] 建立資料夾
-- [ ] Long Path remediation
-- [ ] Developer Mode remediation
-- [ ] 執行後驗證
-- [ ] JSON result
+- [x] Change Plan
+- [x] Remediation whitelist
+- [x] Elevated Worker validation shell
+- [x] 建立資料夾
+- [x] Long Path remediation
+- [x] Developer Mode remediation
+- [x] 執行後驗證
+- [x] JSON result
 
 ## Phase 3：Rollback
 
-- [ ] Backup schema
+- [x] Backup schema
 - [ ] Backup browser
-- [ ] Rollback plan
-- [ ] Elevated rollback
-- [ ] Rollback verification
+- [x] Rollback plan
+- [x] Elevated rollback
+- [x] Rollback verification
 
 ## Phase 4：工具安裝
 

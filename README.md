@@ -1,40 +1,89 @@
-﻿# WindowsDevInspector
+# WindowsDevInspector
 
-WindowsDevInspector ?臭???Windows 獢??啣?瑼Ｘ?耨敺拙極?瑯?
-雿輻???極雿??脰??銵ㄖ嚗?撘?靘???貊憓銵霈瑼Ｘ嚗??箇撣詻蔣?踴◢?芾??臬銵?靽格迤?寞??蝙?刻?桅??甈⊿?耨甇???殷?蝣箄?靽格迤?批捆敺????閬?UAC ?蝡?Worker ?瑁?靽格??
-## ?桀??Ｗ??孵?
+WindowsDevInspector is a Windows desktop tool for inspecting a developer workstation and explaining what is missing, risky, or ready to use.
 
-蝚砌?撅方??莎?
+The project focuses on read-only diagnostics first, then safe and auditable remediation through a separate elevated worker.
 
-- ???啣?
-- ?垢撌亦?撣?- 敺垢撌亦?撣?- ?函垢撌亦?撣?- ?脩垢 / DevOps / SRE
-- DBA / 鞈?摨怠極蝔葦
+## Goals
 
-蝚砌?撅斗?銵?
+- Inspect common Windows developer environment prerequisites.
+- Let users select roles and technologies instead of forcing one fixed profile.
+- Show clear results with current value, expected value, impact, risk, and remediation availability.
+- Keep normal UI code read-only and route system changes through a validated elevated worker.
+- Build a small, testable vertical slice before expanding the check catalog.
 
-- .NET
-- Go
-- Angular
-- Node.js
-- Docker
-- WSL
-- Kubernetes
-- Azure
-- SQL Server
+## Current Scope
 
-## ?詨???
+The current implementation is an early MVP for:
 
-1. 瑼Ｘ?耨甇???Ｕ?2. ??炎?仿?閮剖霈??3. 銝餌?撘?隞亦頂蝯梁恣?頨怠?撣賊???4. ?芣??瑁?靽格迤???? Elevated Worker??5. 靽格迤????隞賬?6. 靽格迤敺????圈?霅?7. ?臬?敺拍??敹??? Rollback??8. 擃◢?芷??桀??隤芣?嚗??芸?靽格??9. PASS ?銝＊蝷箏?豢?嚗蒂???冽?敺?10. ????賡??航◤?桀?皜祈岫??葫閰阡?霅?
-## ?辣
+- Common baseline checks.
+- Role and technology selection.
+- Technology catalog and selected technology persistence.
+- Check result sorting with non-pass items before pass items.
+- Result detail display.
+- Initial read-only Windows checks for directories, registry values, services, optional features, PATH health, and command versions.
+- Initial remediation metadata and whitelist validation.
 
-- [撠?閬](docs/PROJECT_SPEC.md)
-- [Environment Profiles](docs/ENVIRONMENT_PROFILES.md)
-- [Codex ??啣?閮剖?](docs/CODEX_DEVELOPMENT_SETUP.md)
-- [?頝舐??(docs/ROADMAP.md)
-- [Codex 撠??誘](AGENTS.md)
+## Solution Structure
+
+```text
+WindowsDevInspector.sln
+├─ src
+│  ├─ WindowsDevInspector.App
+│  ├─ WindowsDevInspector.Core
+│  ├─ WindowsDevInspector.Windows
+│  ├─ WindowsDevInspector.Remediation
+│  └─ WindowsDevInspector.ElevatedWorker
+├─ tests
+│  ├─ WindowsDevInspector.Core.Tests
+│  ├─ WindowsDevInspector.Windows.Tests
+│  └─ WindowsDevInspector.Remediation.Tests
+└─ docs
+```
+
+## Architecture
+
+- `WindowsDevInspector.App`: WPF UI, selection state, view models, navigation, and result presentation.
+- `WindowsDevInspector.Core`: domain models, check definitions, result sorting, severity, and risk concepts.
+- `WindowsDevInspector.Windows`: read-only Windows environment checks.
+- `WindowsDevInspector.Remediation`: remediation definitions and whitelist validation.
+- `WindowsDevInspector.ElevatedWorker`: future elevated execution boundary for approved fixes.
+
+The app project must not directly write registry values, modify PATH, install software, enable Windows features, or execute administrator changes.
 
 ## Environment Selection
 
-The app should model a developer environment as multi-select data instead of a single fixed profile. Users can select one or more roles, such as Frontend, Backend, DBA, QA, DevOps, Mobile, and Desktop. Fullstack, Cloud Developer, Data Platform, and Test Automation are derived labels based on those selections.
+Users can select one or more roles:
 
-Technology selection should be a searchable multi-select dropdown. The initial catalog contains 30 frontend technologies, 30 backend technologies, and 30 database technologies. See `docs/ENVIRONMENT_PROFILES.md`.
+- Frontend Engineer
+- Backend Engineer
+- DBA / Data Engineer
+- QA / Test Engineer
+- DevOps / SRE
+- Mobile Engineer
+- Desktop Engineer
+
+Users can also select technologies from grouped searchable lists. Unsupported technologies should still be recognized and reported as informational items when automated diagnostics are not implemented yet.
+
+## Build And Test
+
+```powershell
+dotnet restore
+dotnet build
+dotnet test
+```
+
+For consistent UTF-8 terminal behavior on Windows PowerShell:
+
+```powershell
+.\scripts\Use-Utf8.ps1
+```
+
+## Documentation
+
+- [Project Spec](docs/PROJECT_SPEC.md)
+- [Check Catalog](docs/CHECK_CATALOG.md)
+- [Environment Profiles](docs/ENVIRONMENT_PROFILES.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Codex Development Setup](docs/CODEX_DEVELOPMENT_SETUP.md)
+- [Agent Instructions](AGENTS.md)

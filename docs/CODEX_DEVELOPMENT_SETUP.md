@@ -72,6 +72,26 @@ dotnet test
 
 若 Repository 尚未有完整 Solution，先讓 Codex依 `AGENTS.md` 與 `docs/PROJECT_SPEC.md` 建立骨架。
 
+## 4.1 UTF-8 終端設定
+
+Windows PowerShell 可能會使用 Big5 作為輸入編碼，且 `$OutputEncoding` 可能是 ASCII，這會讓中文文件、Git log、dotnet 輸出或管線結果出現亂碼。
+
+在 Repository root 執行：
+
+```powershell
+.\scripts\Use-Utf8.ps1
+```
+
+此腳本只影響目前 PowerShell process 與由它啟動的子 process：
+
+- `[Console]::InputEncoding`
+- `[Console]::OutputEncoding`
+- `$OutputEncoding`
+- `PYTHONUTF8`
+- `PYTHONIOENCODING`
+
+腳本不得修改 Windows 全域設定、PowerShell profile、Git global config、Git local config、系統地區或永久 code page。若需要應用程式輸出 UTF-8，優先在程式啟動時設定該 process 的 console/input/output encoding。
+
 ## 5. Codex 啟動位置
 
 必須在 Repository root 啟動：

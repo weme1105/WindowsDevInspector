@@ -22,6 +22,31 @@ public sealed class CheckResultRow(CheckResult result)
 
     public string CanFix { get; } = result.CanFix ? "是" : "否";
 
+    public bool CanFixValue { get; } = result.CanFix;
+
+    public RiskLevel Risk { get; } = result.Risk;
+
+    public bool RequiresElevation { get; } = result.RequiresElevation;
+
+    public bool RequiresRestart { get; } = result.RequiresRestart;
+
+    public bool SupportsRollback { get; } = result.SupportsRollback;
+
+    public string? RemediationId { get; } = result.RemediationId;
+
+    public bool IsFixSelectable => CanFixValue
+        && RemediationId is not null
+        && Severity != CheckSeverity.Pass.ToString();
+
+    public bool IsLowRiskLocalFix => IsFixSelectable
+        && Risk == RiskLevel.Low
+        && !RequiresElevation;
+
+    public bool IsLowRiskSupportedFix => IsFixSelectable
+        && Risk == RiskLevel.Low;
+
+    public bool IsSelectedForFix { get; set; }
+
     public string Impact { get; } = result.Impact;
 
     private static string ToSingleLine(string value)

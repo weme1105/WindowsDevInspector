@@ -1,15 +1,27 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using WindowsDevInspector.Core;
+using WindowsDevInspector.Remediation;
 using WindowsDevInspector.Windows;
 
 namespace WindowsDevInspector.App;
 
 public partial class MainWindow : Window
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = true
+    };
+
     private readonly CheckCatalog checkCatalog = BuiltInCheckCatalog.Create();
+    private readonly DirectoryRemediationExecutor directoryRemediationExecutor = new(
+        BuiltInRemediationCatalog.CreateWhitelist(),
+        new SystemRemediationFileSystem());
 
     public MainWindow()
     {
@@ -109,6 +121,266 @@ public partial class MainWindow : Window
         }
 
         ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查";
+    }
+
+    private async void FixAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        CheckResultRow[] selectableRows = Results
+            .Where(result => result.IsFixSelectable && result.RemediationId is not null)
+            .ToArray();
+
+        await ExecuteFixesAsync(selectableRows, "沒有可執行的修正項目");
+    }
+
+    private async void StartFixButton_Click(object sender, RoutedEventArgs e)
+    {
+        CheckResultRow[] selectedRows = Results
+            .Where(result => result.IsSelectedForFix && result.RemediationId is not null)
+            .ToArray();
+
+        await ExecuteFixesAsync(selectedRows, "尚未勾選可執行的修正");
+    }
+
+    private async void RestoreLatestBackupButton_Click(object sender, RoutedEventArgs e)
+    {
+        string? backupPath = FindLatestBackupPath();
+        if (backupPath is null)
+        {
+            ScanStatusTextBlock.Text = "找不到可還原的備份檔";
+            return;
+        }
+
+        StartFixButton.IsEnabled = false;
+        FixAllButton.IsEnabled = false;
+        RestoreLatestBackupButton.IsEnabled = false;
+        ScanStatusTextBlock.Text = "還原中...";
+
+        try
+        {
+            WorkerExecutionResult rollbackResult = await RunElevatedRollbackAsync(backupPath);
+            await RunScanAsync();
+
+            ScanStatusTextBlock.Text = rollbackResult.Succeeded
+                ? "還原完成，已重新掃描"
+                : $"還原失敗：{string.Join("; ", rollbackResult.Results.Select(result => result.Message).Concat(rollbackResult.Errors))}";
+        }
+        catch (OperationCanceledException)
+        {
+            ScanStatusTextBlock.Text = "還原已取消或 UAC 未被允許";
+        }
+        catch (IOException ex)
+        {
+            ScanStatusTextBlock.Text = $"還原失敗：{ex.Message}";
+        }
+        finally
+        {
+            StartFixButton.IsEnabled = true;
+            FixAllButton.IsEnabled = true;
+            RestoreLatestBackupButton.IsEnabled = true;
+        }
+    }
+
+    private async Task ExecuteFixesAsync(IReadOnlyList<CheckResultRow> selectedRows, string emptySelectionMessage)
+    {
+        if (selectedRows.Count == 0)
+        {
+            ScanStatusTextBlock.Text = emptySelectionMessage;
+            return;
+        }
+
+        StartFixButton.IsEnabled = false;
+        FixAllButton.IsEnabled = false;
+        RestoreLatestBackupButton.IsEnabled = false;
+        ScanStatusTextBlock.Text = "修正中...";
+
+        try
+        {
+            List<RemediationExecutionResult> executionResults = [];
+            foreach (CheckResultRow row in selectedRows.Where(row => !row.RequiresElevation))
+            {
+                executionResults.Add(await directoryRemediationExecutor.ExecuteAsync(row.RemediationId!, CancellationToken.None));
+            }
+
+            CheckResultRow[] elevatedRows = selectedRows
+                .Where(row => row.RequiresElevation)
+                .ToArray();
+
+            WorkerExecutionResult? workerResult = elevatedRows.Length == 0
+                ? null
+                : await RunElevatedRemediationAsync(elevatedRows);
+
+            if (workerResult is not null)
+            {
+                executionResults.AddRange(workerResult.Results);
+            }
+
+            int succeededCount = executionResults.Count(result => result.Succeeded);
+            int skippedCount = executionResults.Count(result => result.Skipped);
+            await RunScanAsync();
+
+            ScanStatusTextBlock.Text = workerResult?.Errors.Count > 0
+                ? $"修正完成但 Worker 回報錯誤：{string.Join("; ", workerResult.Errors)}"
+                : skippedCount == 0
+                ? $"修正完成：{succeededCount} 個成功，已重新掃描"
+                : $"修正完成：{succeededCount} 個成功，{skippedCount} 個略過，已重新掃描";
+        }
+        catch (OperationCanceledException)
+        {
+            ScanStatusTextBlock.Text = "修正已取消或 UAC 未被允許";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            ScanStatusTextBlock.Text = "修正失敗：沒有權限建立目標資料夾";
+        }
+        catch (IOException ex)
+        {
+            ScanStatusTextBlock.Text = $"修正失敗：{ex.Message}";
+        }
+        finally
+        {
+            StartFixButton.IsEnabled = true;
+            FixAllButton.IsEnabled = true;
+            RestoreLatestBackupButton.IsEnabled = true;
+        }
+    }
+
+    private static async Task<WorkerExecutionResult> RunElevatedRemediationAsync(IReadOnlyList<CheckResultRow> rows)
+    {
+        string workerPath = ResolveElevatedWorkerPath();
+        string workDirectory = GetRemediationWorkDirectory();
+        Directory.CreateDirectory(workDirectory);
+
+        string planId = $"plan-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}";
+        string planPath = Path.Combine(workDirectory, $"{planId}.json");
+        string resultPath = Path.Combine(workDirectory, $"{planId}.result.json");
+
+        ChangePlan plan = new()
+        {
+            PlanId = planId,
+            Items = rows
+                .Select(row => new ChangePlanItem { RemediationId = row.RemediationId! })
+                .ToArray()
+        };
+
+        await File.WriteAllTextAsync(planPath, JsonSerializer.Serialize(plan, JsonOptions));
+
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = workerPath,
+            Arguments = $"{Quote(planPath)} {Quote(resultPath)}",
+            UseShellExecute = true,
+            Verb = "runas",
+            WorkingDirectory = Path.GetDirectoryName(workerPath)!
+        };
+
+        using Process? process = Process.Start(startInfo);
+        if (process is null)
+        {
+            throw new OperationCanceledException("ElevatedWorker did not start.");
+        }
+
+        await process.WaitForExitAsync();
+
+        if (!File.Exists(resultPath))
+        {
+            throw new IOException($"ElevatedWorker did not write result file. Exit code: {process.ExitCode}");
+        }
+
+        string resultJson = await File.ReadAllTextAsync(resultPath);
+        return JsonSerializer.Deserialize<WorkerExecutionResult>(resultJson, JsonOptions)
+            ?? WorkerExecutionResult.Failed(planId, ["ElevatedWorker returned invalid JSON."]);
+    }
+
+    private static async Task<WorkerExecutionResult> RunElevatedRollbackAsync(string backupPath)
+    {
+        string workerPath = ResolveElevatedWorkerPath();
+        string workDirectory = GetRemediationWorkDirectory();
+        Directory.CreateDirectory(workDirectory);
+
+        string resultPath = Path.Combine(workDirectory, $"rollback-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}.result.json");
+
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = workerPath,
+            Arguments = $"--rollback {Quote(backupPath)} {Quote(resultPath)}",
+            UseShellExecute = true,
+            Verb = "runas",
+            WorkingDirectory = Path.GetDirectoryName(workerPath)!
+        };
+
+        using Process? process = Process.Start(startInfo);
+        if (process is null)
+        {
+            throw new OperationCanceledException("ElevatedWorker did not start.");
+        }
+
+        await process.WaitForExitAsync();
+
+        if (!File.Exists(resultPath))
+        {
+            throw new IOException($"ElevatedWorker did not write rollback result file. Exit code: {process.ExitCode}");
+        }
+
+        string resultJson = await File.ReadAllTextAsync(resultPath);
+        return JsonSerializer.Deserialize<WorkerExecutionResult>(resultJson, JsonOptions)
+            ?? WorkerExecutionResult.Failed("rollback", ["ElevatedWorker returned invalid JSON."]);
+    }
+
+    private static string? FindLatestBackupPath()
+    {
+        string backupDirectory = Path.Combine(GetRemediationWorkDirectory(), "Backups");
+        if (!Directory.Exists(backupDirectory))
+        {
+            return null;
+        }
+
+        return Directory
+            .EnumerateFiles(backupDirectory, "*.backup.json")
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(file => file.LastWriteTimeUtc)
+            .FirstOrDefault()
+            ?.FullName;
+    }
+
+    private static string GetRemediationWorkDirectory()
+    {
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "WindowsDevInspector",
+            "Remediation");
+    }
+
+    private static string ResolveElevatedWorkerPath()
+    {
+        string outputPath = Path.Combine(AppContext.BaseDirectory, "WindowsDevInspector.ElevatedWorker.exe");
+        if (File.Exists(outputPath))
+        {
+            return outputPath;
+        }
+
+        string developmentPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..",
+            "..",
+            "..",
+            "..",
+            "WindowsDevInspector.ElevatedWorker",
+            "bin",
+            "Debug",
+            "net10.0-windows",
+            "WindowsDevInspector.ElevatedWorker.exe"));
+
+        if (File.Exists(developmentPath))
+        {
+            return developmentPath;
+        }
+
+        throw new FileNotFoundException("ElevatedWorker executable was not found.", outputPath);
+    }
+
+    private static string Quote(string value)
+    {
+        return string.Concat('"', value.Replace("\"", "\\\"", StringComparison.Ordinal), '"');
     }
 
     private static CheckResult CreatePendingCheckResult(CheckDefinition check)

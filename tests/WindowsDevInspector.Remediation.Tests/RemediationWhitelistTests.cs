@@ -12,6 +12,7 @@ public sealed class RemediationWhitelistTests
             {
                 Id = "enable-long-paths",
                 DisplayName = "Enable Windows long paths",
+                Description = "Enables Windows long path support.",
                 Risk = RiskLevel.Low
             }
         ]);

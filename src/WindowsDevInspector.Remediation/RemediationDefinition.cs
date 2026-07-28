@@ -8,6 +8,8 @@ public sealed record RemediationDefinition
 
     public required string DisplayName { get; init; }
 
+    public required string Description { get; init; }
+
     public required RiskLevel Risk { get; init; }
 
     public bool RequiresElevation { get; init; }

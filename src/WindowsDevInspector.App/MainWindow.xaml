@@ -36,6 +36,7 @@
         <Style TargetType="Expander">
             <Setter Property="Margin" Value="0,0,0,10" />
         </Style>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
 
     <Grid>
@@ -167,6 +168,17 @@
                       Background="#FFFFFF">
                 <ListView.View>
                     <GridView>
+                        <GridViewColumn Header="修正" Width="70">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelectedForFix, Mode=TwoWay}"
+                                              IsEnabled="{Binding IsFixSelectable}"
+                                              Visibility="{Binding IsFixSelectable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                              HorizontalAlignment="Center"
+                                              Margin="0" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="狀態" Width="90">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -192,13 +204,6 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding CurrentValue}" ToolTip="{Binding FullCurrentValue}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="修正" Width="100">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Style="{StaticResource ResultCellTextBlockStyle}" Text="{Binding CanFix}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -238,11 +243,18 @@
             </Border>
 
             <DockPanel Grid.Row="3" Margin="0,18,0,0">
-                <Button Content="批次修正"
-                        IsEnabled="False"
+                <Button x:Name="FixAllButton"
+                        Content="全部修正"
+                        Click="FixAllButton_Click"
                         DockPanel.Dock="Left" />
-                <Button Content="開始修正"
-                        IsEnabled="False"
+                <Button x:Name="RestoreLatestBackupButton"
+                        Content="還原最近備份"
+                        Click="RestoreLatestBackupButton_Click"
+                        Margin="12,0,0,0"
+                        DockPanel.Dock="Left" />
+                <Button x:Name="StartFixButton"
+                        Content="修正勾選項目"
+                        Click="StartFixButton_Click"
                         DockPanel.Dock="Right" />
             </DockPanel>
         </Grid>

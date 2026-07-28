@@ -1,99 +1,117 @@
-﻿# WindowsDevInspector 撠?閬
+# WindowsDevInspector Project Spec
 
-## 1. ??摰儔
+## 1. Product Purpose
 
-Windows ??啣?撣詨?銝???撠?撌亙憭望?嚗?
-- PATH 畾???摨隤?- Long Path ?芸???- Developer Mode ?芸???- WSL?ocker?irtual Machine Platform ???銝??- SDK 摰?雿?CLI ?⊥??瑁?
-- 憭???Node.js?o??NET 銵?
-- WinNAT?NS?irewall ??localhost bind ??
-- Windows Insider Build 銵撌桃
-- 撌亙摮嚗??銝泵??銵ㄖ閬?
+WindowsDevInspector is a Windows desktop application for checking whether a developer workstation is ready for selected roles and technology stacks.
 
-?暹?閮箸?單?芾?Ｙ??勗?嚗瘜?閫蝭拚嚗?蝻箏?摰??汗??儔?耨甇??蝔?
-## 2. ?Ｗ??格?
+The product should help a developer answer:
 
-WindowsDevInspector ??嚗?
-1. 靘??脰??銵ㄖ?豢?瑼Ｘ蝭???2. ?瑁??航??啣?????3. 隞乩??渲??芋???曄???4. 憿舐內??敶梢?◢?芥?潸????潦?5. ???桅??甈∩耨甇??6. ?? UAC Worker ?瑁?摰?賢??桐耨甇??7. 靽格迤??隞踝?靽格迤敺?霅?8. ?芯??舀 Rollback???箄? Profile Plugin??
-## 3. ?璅?
-MVP 銝???
+- What is installed and working?
+- What is missing or misconfigured?
+- Why does the issue matter?
+- Is an automated fix available?
+- What risk, elevation, restart, backup, and rollback considerations apply before fixing it?
 
-- 摰隡平蝡舫?蝞∠?
-- 蝢斤????葉?函蔡
-- 蝬脣?蝞∠?
-- 憭折??垢?餉蝞∠?
-- 撽?蝔??芸??湔
-- ?? Windows 摰?
-- 隞餅?蝚砌??寡?擃耨敺?- ?芸??????Windows Insider ??
+The first product principle is safety: inspection is read-only by default, and remediation must be explicit, constrained, auditable, and reversible where practical.
 
-## 4. 雿輻瘚?
+## 2. Technology Choices
+
+- Language: C#
+- Runtime: .NET 10
+- Desktop UI: WPF
+- Architecture: MVVM-oriented WPF with clear project boundaries
+- Dependency injection: Microsoft.Extensions.DependencyInjection
+- Logging: Microsoft.Extensions.Logging or Serilog
+- JSON: System.Text.Json
+- Tests: xUnit
+- Windows integration: Registry, services, optional features, process execution, file system, and environment variables
+- Installer/remediation tooling: winget where appropriate
+
+Commercial or restrictive-license dependencies should not be introduced without approval.
+
+## 3. Solution Boundaries
 
 ```text
-?豢?銝餉?閫
-???豢??銵敦??????瑼Ｘ
-???亦???敺?????暺???亦?靽格迤?批捆
-???暸?桅????甈∩耨甇???蝣箄? Change Plan
-???? Elevated Worker
-??UAC
-???遢
-???瑁?
-??撽?
-?????
+WindowsDevInspector.App
+WindowsDevInspector.Core
+WindowsDevInspector.Windows
+WindowsDevInspector.Remediation
+WindowsDevInspector.ElevatedWorker
 ```
 
-## 5. 閫??銵?Profile
+### WindowsDevInspector.App
 
-### 閫
+Responsible for UI, selection state, commands, result display, details, and user confirmation flows.
 
-| ID | ?迂 |
-|---|---|
-| common | ???啣? |
-| frontend | ?垢撌亦?撣?|
-| backend | 敺垢撌亦?撣?|
-| fullstack | ?函垢撌亦?撣?|
-| cloud | ?脩垢 / DevOps / SRE |
-| dba | DBA / 鞈?摨怠極蝔葦 |
+The app must not directly:
 
-### ?銵敦??
-| ID | ?銵?|
-|---|---|
-| dotnet | .NET |
-| go | Go |
-| angular | Angular |
-| node | Node.js |
-| docker | Docker |
-| wsl | WSL |
-| kubernetes | Kubernetes |
-| azure | Azure CLI |
-| sqlserver | SQL Server |
+- Write registry values.
+- Modify PATH.
+- Install software.
+- Enable or disable Windows features.
+- Execute arbitrary administrator commands.
 
+### WindowsDevInspector.Core
 
-### Environment Profile Update
+Responsible for domain models and shared rules:
 
-Profiles should be modeled as multi-select roles and multi-select technologies, not as mutually exclusive presets.
+- Check definitions.
+- Check results.
+- Severity and risk.
+- Technology definitions.
+- Result sorting.
+- Remediation metadata shape.
 
-Role selections:
+Core must not depend on WPF or Windows-specific APIs.
 
-- Frontend Engineer
-- Backend Engineer
-- DBA / Data Engineer
-- QA / Test Engineer
-- DevOps / SRE
-- Mobile Engineer
-- Desktop Engineer
+### WindowsDevInspector.Windows
 
-Derived labels:
+Responsible for read-only Windows checks.
 
-- Fullstack = Frontend + Backend
-- Cloud Developer = Backend or DevOps + cloud platform/tool
-- Data Platform = Backend + DBA
-- Test Automation = QA + Frontend or Backend
+All environment checks must:
 
-Technology selection should be a searchable grouped multi-select dropdown. The initial catalog should include 30 frontend technologies, 30 backend technologies, and 30 database technologies. The source of truth is `docs/ENVIRONMENT_PROFILES.md`.
+- Support `CancellationToken`.
+- Avoid external command execution in constructors.
+- Handle missing commands, timeouts, access denial, and unexpected output.
+- Return understandable `CurrentValue`, `ExpectedValue`, and `Impact`.
+- Avoid changing system state.
 
-Selected technologies that do not yet have automated checks should still appear in the result model as `Info`, so users can see that the selection is recognized but diagnostics are not implemented yet.
-## 6. CheckResult 鞈?璅∪?
+### WindowsDevInspector.Remediation
 
-瘥炎?亦??撠??恬?
+Responsible for remediation definitions, preview metadata, whitelist validation, backup concepts, rollback concepts, and execution result models.
+
+### WindowsDevInspector.ElevatedWorker
+
+Responsible for the future elevated execution boundary.
+
+The worker must:
+
+1. Verify that it is running elevated.
+2. Validate the change plan schema.
+3. Execute only approved remediation IDs.
+4. Reject arbitrary shell commands.
+5. Create backups before changes.
+6. Record each remediation result independently.
+7. Re-read state after changes.
+8. Produce a JSON execution result.
+9. Refuse arbitrary registry paths or executable paths from the UI.
+
+## 4. User Flow
+
+1. User selects one or more roles.
+2. User selects one or more technologies.
+3. User clicks start check.
+4. App runs common checks plus checks mapped from selected technologies.
+5. Results are sorted with non-pass items first and pass items last.
+6. User selects a result to inspect details.
+7. Supported low-risk fixes may be selected for batch remediation.
+8. Before remediation, the app explains UAC, backup, restart, risk, and rollback.
+9. Elevated worker executes only approved changes.
+10. App runs checks again after remediation.
+
+## 5. Result Model
+
+Each check result should expose:
 
 ```text
 Id
@@ -111,211 +129,119 @@ SupportsRollback
 RemediationId
 ```
 
-Severity嚗?
-- Pass
-- Info
-- Warning
-- Critical
+Severity order:
 
-Risk嚗?
-- None
-- Low
-- Medium
-- High
-
-## 7. ??閬?
-
-蝯????芸???嚗?
 1. Critical
 2. Warning
 3. Info
 4. Pass
 
-????嚗?
-1. Category
-2. Name
+Sorting rules:
 
-PASS嚗?
-- ??敺?- 銝＊蝷箏?豢?
-- 銝??交甈∩耨甇?
-## 8. MVP 瑼Ｘ?
+1. Non-pass results appear before pass results.
+2. Higher severity appears first.
+3. Category and name provide stable secondary sorting.
+4. Pass results do not show a remediation checkbox.
 
-### ?
+## 6. Environment Selection
 
-- Windows ???Build
-- 蝟餌絞?嗆?
-- Developer Mode
-- Long Paths
-- PATH 銝??券???- PATH ???
-- `D:\Source`
-- `D:\Projects`
-- `D:\GoNote`
-- PowerShell 7
-- Git
-- winget
+Profiles are multi-select data, not mutually exclusive presets.
 
-### .NET
+Supported role selections:
 
-- dotnet CLI
-- SDK ?”
-- Runtime ?”
-- NuGet source
-- ASP.NET Core runtime
-- Visual Studio / Build Tools
+- Frontend Engineer
+- Backend Engineer
+- DBA / Data Engineer
+- QA / Test Engineer
+- DevOps / SRE
+- Mobile Engineer
+- Desktop Engineer
 
-### Go
+Derived labels may be displayed but should not be stored as independent profiles:
 
-- go CLI
-- Go version
-- GOROOT
-- GOPATH
-- Go bin PATH
-- `go env`
-- Smart App Control / Code Integrity ?賊?閮箸?內
+- Fullstack: Frontend + Backend
+- Cloud Developer: Backend or DevOps plus a cloud platform/tool
+- Data Platform: Backend + DBA
+- Test Automation: QA plus Frontend or Backend
 
-### Angular / Node.js
+Technology selection should be searchable, grouped, and multi-select. The catalog source of truth is `docs/ENVIRONMENT_PROFILES.md`.
 
-- node
-- npm
-- pnpm
-- Angular CLI
-- Node.js LTS ?詨捆??- npm global prefix
+## 7. MVP Check Scope
 
-### Cloud / DevOps
+Common baseline checks:
 
-- Docker CLI
-- Docker Desktop
-- WSL
-- WSL version
-- WSL distro
-- Virtual Machine Platform
-- Hyper-V
-- kubectl
-- Azure CLI
-- Terraform
-- localhost bind
-- WinNAT
-- HNS
+- Windows version and build.
+- Processor architecture.
+- PATH invalid entries.
+- PATH duplicate entries.
+- Long Paths.
+- Developer Mode.
+- `D:\Source`.
+- `D:\Projects`.
+- `D:\GoNote`.
+- PowerShell 7.
+- Git.
+- winget.
 
-### DBA / SQL Server
+Technology-driven checks are tracked in `docs/CHECK_CATALOG.md`. Selected technologies without implemented diagnostics should still produce informational visibility instead of disappearing silently.
 
-- SQL Server tooling
-- sqlcmd
-- ODBC Driver
-- LocalDB
-- SSMS
-- TCP connectivity prerequisites
+## 8. Initial Safe Remediation Scope
 
-## 9. 蝚砌??嫣耨甇?
-### 撱箇?鞈?憭?
-- `D:\Source`
-- `D:\Projects`
-- `D:\GoNote`
+The first automatic remediation items are limited to:
 
-### Long Paths
+- Create `D:\Source`.
+- Create `D:\Projects`.
+- Create `D:\GoNote`.
+- Enable Long Paths.
+- Enable Developer Mode.
 
-Registry嚗?
-```text
-HKLM\SYSTEM\CurrentControlSet\Control\FileSystem
-LongPathsEnabled = 1
-```
+All remediation must be represented by approved remediation IDs, not arbitrary commands or user-supplied registry paths.
 
-### Developer Mode
+## 9. Security Rules
 
-Registry嚗?
-```text
-HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
-AllowDevelopmentWithoutDevLicense = 1
-```
+The product must not:
 
-## 10. Remediation 摰璅∪?
+- Disable Defender.
+- Disable Smart App Control.
+- Disable UAC.
+- Modify arbitrary ACLs.
+- Accept arbitrary PowerShell strings from UI.
+- Execute remote downloaded scripts.
+- Use `cmd /c` with UI-composed commands.
+- Log tokens, passwords, cookies, private keys, or connection strings.
+- Automatically delete unknown PATH entries.
+- Modify registry values without backup.
 
-UI 銝??喳隞餅?蝟餌絞?賭誘??
-UI ?芾?喳嚗?
-```json
-{
-  "remediationId": "enable-long-paths"
-}
-```
+External input and command output must be treated as untrusted.
 
-Worker ?折???箏? mapping 瘙箏?撖阡???嚗?
-```text
-enable-long-paths
-???箏? Registry hive
-???箏? Registry path
-???箏? value name
-???箏? value
-```
+## 10. Testing Strategy
 
-銝??迂嚗?
-```json
-{
-  "command": "powershell ...",
-  "registryPath": "...",
-  "value": "..."
-}
-```
+Unit tests should cover:
 
-## 11. ?遢??Rollback
+- Check result sorting.
+- Check catalog filtering and deduplication.
+- Registry value conversion.
+- Directory check behavior.
+- Command check behavior for missing command, timeout, failure, and success.
+- PATH health checks.
+- Remediation whitelist validation.
 
-?遢?身雿蔭嚗?
-```text
-C:\ProgramData\WindowsDevInspector\Backups
-```
+Future integration tests should cover:
 
-瘥活?瑁??Ｙ?嚗?
-```text
-<plan-id>.backup.json
-<plan-id>.result.json
-```
+- Temporary directory remediation and rollback.
+- Fake registry abstractions.
+- Fake process runner behavior.
+- Worker plan validation.
+- Unsupported remediation rejection.
 
-?遢閮?嚗?
-- 靽格憿?
-- ?格?
-- ?臬?摮
-- ????- ?瑁???
-- App version
+## 11. Current Implementation Notes
 
-Rollback 敹??活?? Elevated Worker??
-## 12. 皜祈岫蝑
+The current repository already contains the solution structure, the initial WPF app, core models, Windows read-only check abstractions, remediation whitelist tests, and a growing check catalog.
 
-### Unit Test
+The immediate direction is to keep expanding small vertical slices:
 
-- Profile filtering
-- Score calculation
-- Result sorting
-- Change Plan validation
-- Remediation whitelist
-- Registry value conversion
-
-### Integration Test
-
-- Temporary directory create / rollback
-- Fake registry abstraction
-- Fake process runner
-- Worker plan validation
-- Unsupported remediation rejection
-
-### Manual Test
-
-- Standard user ??
-- UAC ??
-- UAC ?亙?
-- Registry 撖怠憭望?
-- Folder 撌脣???- Worker 蝯?雿?result 蝻箏仃
-- 靽格迤敺??唳???
-## 13. 閮剛???
-
-?????嚗?閬???撱箇? 400 ?炎?乓?
-瘥????恬?
-
-```text
-Check
-??UI 憿舐內
-??Preview
-??Remediation
-??Backup
-??Verification
-??Test
-```
-
+1. Strengthen scan orchestration and result presentation.
+2. Complete first safe remediation flow.
+3. Add backup and rollback.
+4. Expand PATH, WSL, Docker, .NET, Go, Node, and database diagnostics.
+5. Add packaging and release documentation.
