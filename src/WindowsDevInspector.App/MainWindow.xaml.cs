@@ -43,6 +43,7 @@ public partial class MainWindow : Window
         };
 
         DataContext = this;
+        RefreshBackupFiles();
 
         int loadedTechnologyCount = TechnologySelectionConfig.Load(TechnologyGroups);
         if (loadedTechnologyCount > 0)
@@ -54,6 +55,8 @@ public partial class MainWindow : Window
     public ObservableCollection<TechnologyGroup> TechnologyGroups { get; }
 
     public ObservableCollection<CheckResultRow> Results { get; }
+
+    public ObservableCollection<BackupFileRow> BackupFiles { get; } = [];
 
     private void TechnologySearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -99,12 +102,7 @@ public partial class MainWindow : Window
 
     private async Task RunScanAsync()
     {
-        string[] selectedTechnologyIds = TechnologyGroups
-            .SelectMany(group => group.Technologies)
-            .Where(technology => technology.IsSelected)
-            .Select(technology => technology.Id)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
         IReadOnlyList<CheckDefinition> checks = checkCatalog.ResolveChecks(selectedTechnologyIds);
         IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks = BuiltInEnvironmentCheckFactory.CreateAll();
@@ -143,7 +141,9 @@ public partial class MainWindow : Window
 
     private async void RestoreLatestBackupButton_Click(object sender, RoutedEventArgs e)
     {
-        string? backupPath = FindLatestBackupPath();
+        string? backupPath = BackupComboBox.SelectedItem is BackupFileRow selectedBackup
+            ? selectedBackup.FullPath
+            : FindLatestBackupPath();
         if (backupPath is null)
         {
             ScanStatusTextBlock.Text = "找不到可還原的備份檔";
@@ -159,6 +159,7 @@ public partial class MainWindow : Window
         {
             WorkerExecutionResult rollbackResult = await RunElevatedRollbackAsync(backupPath);
             await RunScanAsync();
+            RefreshBackupFiles();
 
             ScanStatusTextBlock.Text = rollbackResult.Succeeded
                 ? "還原完成，已重新掃描"
@@ -177,6 +178,43 @@ public partial class MainWindow : Window
             StartFixButton.IsEnabled = true;
             FixAllButton.IsEnabled = true;
             RestoreLatestBackupButton.IsEnabled = true;
+        }
+    }
+
+    private async void ExportReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (Results.Count == 0)
+        {
+            ScanStatusTextBlock.Text = "沒有可匯出的檢查結果";
+            return;
+        }
+
+        try
+        {
+            string reportDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "WindowsDevInspector",
+                "Reports");
+            Directory.CreateDirectory(reportDirectory);
+
+            string reportPath = Path.Combine(reportDirectory, $"scan-report-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.json");
+            ScanReport report = new()
+            {
+                CreatedAt = DateTimeOffset.UtcNow,
+                SelectedTechnologyIds = GetSelectedTechnologyIds(),
+                Results = Results.Select(result => result.ToReportRow()).ToArray()
+            };
+
+            await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, JsonOptions));
+            ScanStatusTextBlock.Text = $"已匯出報告：{reportPath}";
+        }
+        catch (IOException ex)
+        {
+            ScanStatusTextBlock.Text = $"匯出失敗：{ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            ScanStatusTextBlock.Text = "匯出失敗：沒有權限寫入報告資料夾";
         }
     }
 
@@ -208,6 +246,7 @@ public partial class MainWindow : Window
             WorkerExecutionResult? workerResult = elevatedRows.Length == 0
                 ? null
                 : await RunElevatedRemediationAsync(elevatedRows);
+            RefreshBackupFiles();
 
             if (workerResult is not null)
             {
@@ -342,6 +381,27 @@ public partial class MainWindow : Window
             ?.FullName;
     }
 
+    private void RefreshBackupFiles()
+    {
+        BackupFiles.Clear();
+
+        string backupDirectory = Path.Combine(GetRemediationWorkDirectory(), "Backups");
+        if (!Directory.Exists(backupDirectory))
+        {
+            return;
+        }
+
+        foreach (FileInfo file in Directory
+            .EnumerateFiles(backupDirectory, "*.backup.json")
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(file => file.LastWriteTimeUtc))
+        {
+            BackupFiles.Add(new BackupFileRow(file));
+        }
+
+        BackupComboBox.SelectedIndex = BackupFiles.Count > 0 ? 0 : -1;
+    }
+
     private static string GetRemediationWorkDirectory()
     {
         return Path.Combine(
@@ -381,6 +441,17 @@ public partial class MainWindow : Window
     private static string Quote(string value)
     {
         return string.Concat('"', value.Replace("\"", "\\\"", StringComparison.Ordinal), '"');
+    }
+
+    private string[] GetSelectedTechnologyIds()
+    {
+        return TechnologyGroups
+            .SelectMany(group => group.Technologies)
+            .Where(technology => technology.IsSelected)
+            .GroupBy(technology => technology.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.Key)
+            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private static CheckResult CreatePendingCheckResult(CheckDefinition check)

@@ -49,6 +49,22 @@ public sealed class CheckResultRow(CheckResult result)
 
     public string Impact { get; } = result.Impact;
 
+    public CheckResultReportRow ToReportRow()
+    {
+        return new CheckResultReportRow
+        {
+            Id = Id,
+            Severity = Severity,
+            Category = Category,
+            Name = Name,
+            CurrentValue = FullCurrentValue,
+            ExpectedValue = ExpectedValue,
+            Impact = Impact,
+            CanFix = CanFixValue,
+            RemediationId = RemediationId
+        };
+    }
+
     private static string ToSingleLine(string value)
     {
         string singleLine = value

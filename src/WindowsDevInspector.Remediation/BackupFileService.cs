@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace WindowsDevInspector.Remediation;
 
-public sealed class BackupFileService(IBackupProtector protector)
+public sealed class BackupFileService(IBackupProtector protector, string machineFingerprint)
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -20,6 +20,7 @@ public sealed class BackupFileService(IBackupProtector protector)
         {
             Version = 1,
             Algorithm = protector.Algorithm,
+            MachineFingerprint = machineFingerprint,
             CipherText = Convert.ToBase64String(ciphertext)
         };
 
@@ -41,6 +42,11 @@ public sealed class BackupFileService(IBackupProtector protector)
         if (!string.Equals(envelope.Algorithm, protector.Algorithm, StringComparison.Ordinal))
         {
             throw new InvalidOperationException("Backup encryption algorithm does not match this worker.");
+        }
+
+        if (!string.Equals(envelope.MachineFingerprint, machineFingerprint, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Backup was created on a different machine.");
         }
 
         byte[] ciphertext = Convert.FromBase64String(envelope.CipherText);

@@ -2,26 +2,26 @@
 
 ## Phase 0：Repository 基礎
 
-- [ ] 建立 Solution
-- [ ] 建立 `.editorconfig`
-- [ ] 建立 `global.json`
-- [ ] 建立測試專案
-- [ ] 建立 GitHub Actions
-- [ ] 確認 `dotnet build`
-- [ ] 確認 `dotnet test`
+- [x] 建立 Solution
+- [x] 建立 `.editorconfig`
+- [x] 建立 `global.json`
+- [x] 建立測試專案
+- [x] 建立 GitHub Actions
+- [x] 確認 `dotnet build`
+- [x] 確認 `dotnet test`
 
 ## Phase 1：唯讀掃描 MVP
 
 - [ ] Profile 選擇
 - [x] Check catalog (`docs/CHECK_CATALOG.md`)
-- [ ] Directory checks
-- [ ] Long Path check
-- [ ] Developer Mode check
-- [ ] PATH invalid entry check
-- [ ] Tool command checks
-- [ ] 結果排序
+- [x] Directory checks
+- [x] Long Path check
+- [x] Developer Mode check
+- [x] PATH invalid entry check
+- [x] Tool command checks
+- [x] 結果排序
 - [ ] 評分
-- [ ] 點擊項目顯示詳細內容
+- [x] 點擊項目顯示詳細內容
 
 ## Phase 2：第一批安全修正
 
@@ -37,7 +37,7 @@
 ## Phase 3：Rollback
 
 - [x] Backup schema
-- [ ] Backup browser
+- [x] Backup browser
 - [x] Rollback plan
 - [x] Elevated rollback
 - [x] Rollback verification
@@ -77,7 +77,7 @@
 
 ## Phase 7：產品化
 
-- [ ] Report export
+- [x] Report export
 - [ ] MSIX / installer
 - [ ] Code signing
 - [ ] Auto update

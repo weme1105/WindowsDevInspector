@@ -7,7 +7,9 @@ JsonSerializerOptions jsonOptions = new()
     PropertyNameCaseInsensitive = true,
     WriteIndented = true
 };
-BackupFileService backupFileService = new(new DpapiBackupProtector());
+BackupFileService backupFileService = new(
+    new DpapiBackupProtector(),
+    MachineFingerprint.CreateFromMacAddresses());
 string? resultPath = null;
 
 if (args.Length is not 1 and not 2 and not 3)
