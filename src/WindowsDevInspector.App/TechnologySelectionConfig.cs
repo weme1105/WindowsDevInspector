@@ -8,15 +8,34 @@ public static class TechnologySelectionConfig
 {
     public const string FileName = "WindowsDevInspector.cfg";
 
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    private static readonly TechnologySelectionConfigStore Store = new(ConfigPath);
 
     public static string ConfigPath => Path.Combine(AppContext.BaseDirectory, FileName);
 
     public static int Load(IReadOnlyCollection<TechnologyGroup> groups)
+    {
+        return Store.Load(groups);
+    }
+
+    public static int Save(IReadOnlyCollection<TechnologyGroup> groups)
+    {
+        return Store.Save(groups);
+    }
+}
+
+public sealed class TechnologySelectionConfigStore(string configPath)
+{
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    public string ConfigPath { get; } = configPath;
+
+    public int Load(IReadOnlyCollection<TechnologyGroup> groups)
     {
         if (!File.Exists(ConfigPath))
         {
@@ -68,7 +87,7 @@ public static class TechnologySelectionConfig
         return matchedIds.Count;
     }
 
-    public static int Save(IReadOnlyCollection<TechnologyGroup> groups)
+    public int Save(IReadOnlyCollection<TechnologyGroup> groups)
     {
         string[] selectedTechnologyIds = groups
             .SelectMany(group => group.Technologies)
@@ -86,6 +105,7 @@ public static class TechnologySelectionConfig
         };
 
         string json = JsonSerializer.Serialize(config, SerializerOptions);
+        Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
         File.WriteAllText(ConfigPath, json);
 
         return selectedTechnologyIds.Length;

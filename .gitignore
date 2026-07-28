@@ -1,31 +1,42 @@
 # Build outputs
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
 artifacts/
 TestResults/
 coverage/
+.coverage/
 *.trx
 *.coverage
 *.coveragexml
+*.cobertura.xml
+coverage.opencover.xml
 
 # Visual Studio / Rider / VS Code local state
 .vs/
 .idea/
 .vscode/
+!.vscode/extensions.json
+!.vscode/settings.example.json
+_ReSharper*/
+*.DotSettings.user
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
 *.rsuser
+*.sln.iml
 
 # .NET local files
 .dotnet-home/
 project.lock.json
 project.assets.json
-*.nuget.props
-*.nuget.targets
+*.nuget.g.props
+*.nuget.g.targets
+packages/
+.nuget/
 
 # Publish / package outputs
+publish/
 *.nupkg
 *.snupkg
 *.msix
@@ -35,19 +46,27 @@ project.assets.json
 
 # Logs and temporary files
 *.log
+logs/
 *.tmp
 *.temp
 *.bak
 *.swp
 Thumbs.db
 Desktop.ini
+$RECYCLE.BIN/
 
 # Environment and secret files
 .env
 .env.*
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
 *.pfx
 *.p12
 *.pem
 *.key
 *.cer
 *.crt
+
+# Codex / local tooling
+.codex/

@@ -11,21 +11,40 @@ public sealed class ScanReportExporter
         WriteIndented = true
     };
 
+    private readonly Func<DateTimeOffset> utcNowProvider;
+    private readonly string reportDirectory;
+
+    public ScanReportExporter()
+        : this(
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "WindowsDevInspector",
+                "Reports"),
+            () => DateTimeOffset.UtcNow)
+    {
+    }
+
+    public ScanReportExporter(string reportDirectory, Func<DateTimeOffset> utcNowProvider)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reportDirectory);
+        ArgumentNullException.ThrowIfNull(utcNowProvider);
+
+        this.reportDirectory = reportDirectory;
+        this.utcNowProvider = utcNowProvider;
+    }
+
     public async Task<string> ExportAsync(
         IReadOnlyCollection<string> selectedTechnologyIds,
         IEnumerable<CheckResultRow> results,
         CancellationToken cancellationToken)
     {
-        string reportDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "WindowsDevInspector",
-            "Reports");
         Directory.CreateDirectory(reportDirectory);
 
-        string reportPath = Path.Combine(reportDirectory, $"scan-report-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.json");
+        DateTimeOffset createdAt = utcNowProvider();
+        string reportPath = Path.Combine(reportDirectory, $"scan-report-{createdAt:yyyyMMddHHmmss}.json");
         ScanReport report = new()
         {
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = createdAt,
             SelectedTechnologyIds = selectedTechnologyIds.ToArray(),
             Results = results.Select(result => result.ToReportRow()).ToArray()
         };
@@ -35,4 +54,3 @@ public sealed class ScanReportExporter
         return reportPath;
     }
 }
-

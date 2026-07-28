@@ -79,11 +79,18 @@ No active implementation task.
   - Related files: `tests/WindowsDevInspector.App.Tests/WindowsDevInspector.App.Tests.csproj`, `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`, `WindowsDevInspector.sln`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
 
+- [x] Make `ScanReportExporter` testable.
+  - Completed: report output directory and timestamp provider are injectable while the default app behavior still writes to LocalAppData.
+  - Related files: `src/WindowsDevInspector.App/ScanReportExporter.cs`, `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`.
+  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
+
+- [x] Add tests for technology selection configuration persistence.
+  - Completed: config path is injectable through `TechnologySelectionConfigStore`, with tests for missing files, malformed JSON, unknown IDs, duplicate IDs, clearing stale selections, and save ordering.
+  - Related files: `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`.
+  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
+
 ## Remaining TODO
 
-- [ ] Add or verify unit tests for `TechnologySelectionConfig`.
-- [ ] Add tests around report export model serialization.
-- [ ] Add focused tests for `ScanReportExporter` using a configurable output directory.
 - [ ] Add UI smoke-test checklist or automation strategy for WPF behavior.
 - [ ] Reconcile README scope wording with the now-completed remediation, backup, rollback, and scoring slices.
 - [ ] Decide whether role selection is still a separate UI concept or represented only by technology groups.
@@ -97,4 +104,4 @@ No active implementation task.
 
 ## Next Recommended Task
 
-Add a configurable output directory to `ScanReportExporter` and cover report serialization with App-layer tests.
+Add a UI smoke-test checklist or automation strategy for WPF behavior.
