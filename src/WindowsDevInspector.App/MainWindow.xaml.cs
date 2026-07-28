@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using WindowsDevInspector.Core;
 using WindowsDevInspector.Remediation;
 using WindowsDevInspector.Windows;
@@ -43,6 +45,8 @@ public partial class MainWindow : Window
         {
             ScanStatusTextBlock.Text = $"已載入 {loadedTechnologyCount} 個儲存選項";
         }
+
+        ResultsView.Filter = ShouldShowResult;
     }
 
     public ObservableCollection<TechnologyGroup> TechnologyGroups { get; }
@@ -50,6 +54,8 @@ public partial class MainWindow : Window
     public ObservableCollection<CheckResultRow> Results { get; }
 
     public ObservableCollection<BackupFileRow> BackupFiles { get; } = [];
+
+    private ICollectionView ResultsView => CollectionViewSource.GetDefaultView(Results);
 
     private void TechnologySearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -59,6 +65,11 @@ public partial class MainWindow : Window
         {
             group.ApplySearch(query);
         }
+    }
+
+    private void HidePassResultsCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        ResultsView.Refresh();
     }
 
     private async void StartScanButton_Click(object sender, RoutedEventArgs e)
@@ -292,4 +303,10 @@ public partial class MainWindow : Window
         return $"Score {score.Score}/100 - Critical {score.CriticalCount}, Warning {score.WarningCount}, Info {score.InfoCount}, Pass {score.PassCount}";
     }
 
+    private bool ShouldShowResult(object item)
+    {
+        return item is not CheckResultRow result
+            || HidePassResultsCheckBox.IsChecked != true
+            || !result.Severity.Equals(CheckSeverity.Pass.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
 }

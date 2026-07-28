@@ -10,6 +10,7 @@
 | DEC-004 | Limit initial automatic remediation to approved low-risk items | Accepted | 2026-07-29 |
 | DEC-005 | Protect registry rollback backups with DPAPI | Accepted | 2026-07-29 |
 | DEC-006 | Use explicit command-output decoding for Windows CLI checks | Accepted | 2026-07-29 |
+| DEC-007 | Keep App orchestration in testable App-layer services | Accepted | 2026-07-29 |
 
 ---
 
@@ -336,3 +337,59 @@ Raw-byte decoding gives reliable diagnostic text without requiring permanent sys
 
 - [ ] Add direct tests for UTF-16LE-without-BOM command output decoding if not already covered.
 
+---
+
+## DEC-007: Keep App Orchestration in Testable App-Layer Services
+
+### Status
+
+Accepted
+
+### Date
+
+2026-07-29
+
+### Context
+
+`MainWindow.xaml.cs` had accumulated scan execution, report export, remediation, elevated worker launch, rollback, and backup listing logic. This made behavior harder to test without WPF UI automation.
+
+### Decision
+
+Keep WPF event handling and UI state in `MainWindow.xaml.cs`, but delegate workflow logic to App-layer services such as `EnvironmentScanService`, `ScanReportExporter`, `RemediationCoordinator`, and `TechnologySelectionConfigStore`.
+
+### Alternatives Considered
+
+- Move directly to a full MVVM rewrite.
+  - Advantages: cleaner long-term WPF architecture.
+  - Disadvantages: larger change and higher regression risk while core behavior is still evolving.
+- Leave all logic in code-behind.
+  - Advantages: fewer files.
+  - Disadvantages: weak testability and harder future maintenance.
+
+### Rationale
+
+Small App-layer services provide immediate testability while preserving the current UI behavior and avoiding a broad rewrite.
+
+### Consequences
+
+#### Positive
+
+- Scan and configuration behavior can be tested without UI automation.
+- `MainWindow.xaml.cs` is smaller and more focused on UI state.
+- Future MVVM extraction has clearer seams.
+
+#### Negative
+
+- Some UI behavior still requires manual smoke testing.
+- `RemediationCoordinator` still launches external elevated processes, so only part of the flow is unit-test friendly.
+
+### Impacted Areas
+
+- App
+- Tests
+- Documentation
+
+### Follow-up Actions
+
+- [ ] Add a WPF smoke-test checklist or UI automation strategy.
+- [ ] Continue moving UI state into ViewModels when behavior stabilizes.

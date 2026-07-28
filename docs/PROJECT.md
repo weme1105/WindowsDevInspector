@@ -29,6 +29,7 @@ Windows developer workstation diagnostics and safe local environment remediation
 - Check catalog resolution from selected technology IDs to deduplicated check IDs.
 - Read-only Windows checks for directories, registry values, services, optional features, PATH health, and command versions.
 - Result sorting with non-pass results before pass results.
+- Optional hiding of PASS results in the result list.
 - Result detail panel with full current value visibility.
 - Environment score calculation.
 - Safe remediation metadata and whitelist validation.
@@ -69,7 +70,7 @@ WindowsDevInspector.App
 
 ## Main Modules
 
-- `WindowsDevInspector.App`: WPF UI, technology selection, scan orchestration, result display, report export, backup selection, and worker launch.
+- `WindowsDevInspector.App`: WPF UI, technology selection, result display, PASS-result filtering, report export, backup selection, and App-layer orchestration services.
 - `WindowsDevInspector.Core`: check definitions, technology definitions, check catalog, result model, sorting, risk, severity, and environment score.
 - `WindowsDevInspector.Windows`: read-only environment checks and Windows abstractions.
 - `WindowsDevInspector.Remediation`: change plan validation, remediation whitelist, directory remediation, registry DWORD remediation, backup, and rollback support.
@@ -92,9 +93,9 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, and scoring slices.
+The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, scoring, App-layer service extraction, and App service test coverage slices.
 
-The next development phase should focus on persistent project documentation, scan orchestration cleanup, and Phase 4/5 diagnostic expansion.
+There is an uncommitted UI polish change that moves report export to the result header, adds a "hide PASS results" toggle, and constrains the selected-fix button width. After that is reviewed and committed, the next development phase should focus on WPF smoke-test coverage and Phase 4/5 diagnostic expansion.
 
 ## Known Constraints
 
@@ -103,4 +104,3 @@ The next development phase should focus on persistent project documentation, sca
 - External command output is untrusted and may require robust decoding.
 - Windows PowerShell sessions should use explicit UTF-8 settings when reading or piping Traditional Chinese project files.
 - Commercial or restrictive-license dependencies require approval.
-

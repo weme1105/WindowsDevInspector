@@ -89,6 +89,16 @@ No active implementation task.
   - Related files: `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
 
+- [x] Expand local ignore rules.
+  - Completed: `.gitignore` covers build outputs, coverage outputs, IDE state, NuGet/package folders, publish artifacts, logs, local secrets, Windows noise files, and local Codex state.
+  - Related files: `.gitignore`.
+  - Verification: `git status --ignored --short` showed build outputs and local tool folders ignored.
+
+- [x] Polish result action layout and PASS filtering.
+  - Completed: "修正勾選項目" no longer stretches into neighboring controls, report export moved to the result header, and the result list can hide PASS rows without deleting scan data.
+  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`.
+  - Verification: manual WPF confirmation by user; `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
+
 ## Remaining TODO
 
 - [ ] Add UI smoke-test checklist or automation strategy for WPF behavior.
@@ -97,7 +107,6 @@ No active implementation task.
 
 ## Known Issues
 
-- [ ] `MainWindow.xaml.cs` has grown into a broad orchestration class.
 - [ ] Some check IDs are documented but not executable yet; pending checks currently surface informational placeholders.
 - [ ] README still describes parts of the implementation as early MVP even though remediation and rollback now exist.
 - [ ] Automated validation does not currently include a WPF UI smoke test.

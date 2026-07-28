@@ -7,7 +7,7 @@
 - Language: C#.
 - Runtime: .NET 10.
 - UI: WPF.
-- Architecture: MVVM-oriented WPF with clear project boundaries. Current implementation still contains significant `MainWindow.xaml.cs` orchestration code.
+- Architecture: MVVM-oriented WPF with clear project boundaries. `MainWindow.xaml.cs` still handles WPF events and UI state, while scan, report, remediation, rollback, and backup orchestration are delegated to App-layer services.
 - JSON: `System.Text.Json`.
 - Dependency management: central package management through `Directory.Packages.props`.
 
@@ -121,6 +121,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.App/EnvironmentScanService.cs`
 - `src/WindowsDevInspector.App/RemediationCoordinator.cs`
 - `src/WindowsDevInspector.App/ScanReportExporter.cs`
+- `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`
 - `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckResultSorter.cs`
@@ -130,6 +131,9 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`
 - `src/WindowsDevInspector.Remediation/ChangePlanValidator.cs`
 - `src/WindowsDevInspector.ElevatedWorker/Program.cs`
+- `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`
+- `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`
+- `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`
 
 ## Important Files
 
@@ -150,6 +154,8 @@ No separate lint or format command is currently documented. Build enforces code 
 - `wsl --status` output may be UTF-16LE without BOM; command output decoding must handle raw bytes.
 - `WindowsDevInspector.App` must not directly mutate registry, PATH, Windows features, or install software.
 - Elevated changes must stay inside `WindowsDevInspector.ElevatedWorker`.
+- Current known validation count is 83 passing tests after App-layer service tests were added.
+- A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
 

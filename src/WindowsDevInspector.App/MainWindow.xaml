@@ -151,6 +151,20 @@
                                FontWeight="SemiBold"
                                Margin="0,8,0,0" />
                 </StackPanel>
+                <StackPanel DockPanel.Dock="Right"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top">
+                    <CheckBox x:Name="HidePassResultsCheckBox"
+                              Content="隱藏 PASS 結果"
+                              VerticalAlignment="Center"
+                              Margin="0,0,12,0"
+                              Checked="HidePassResultsCheckBox_Changed"
+                              Unchecked="HidePassResultsCheckBox_Changed" />
+                    <Button x:Name="ExportReportButton"
+                            Content="匯出報告"
+                            Click="ExportReportButton_Click"
+                            Margin="0,0,12,0" />
+                </StackPanel>
                 <Border DockPanel.Dock="Right"
                         Background="#EAF1FB"
                         BorderBrush="#C7D8F2"
@@ -247,32 +261,34 @@
                 </StackPanel>
             </Border>
 
-            <DockPanel Grid.Row="3" Margin="0,18,0,0">
+            <Grid Grid.Row="3" Margin="0,18,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="330" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <Button x:Name="FixAllButton"
                         Content="全部修正"
-                        Click="FixAllButton_Click"
-                        DockPanel.Dock="Left" />
+                        Click="FixAllButton_Click" />
                 <ComboBox x:Name="BackupComboBox"
-                          Width="330"
+                          Grid.Column="1"
                           Margin="12,0,0,0"
                           ItemsSource="{Binding BackupFiles}"
-                          DisplayMemberPath="DisplayName"
-                          DockPanel.Dock="Left" />
+                          DisplayMemberPath="DisplayName" />
                 <Button x:Name="RestoreLatestBackupButton"
+                        Grid.Column="2"
                         Content="還原備份"
                         Click="RestoreLatestBackupButton_Click"
-                        Margin="12,0,0,0"
-                        DockPanel.Dock="Left" />
-                <Button x:Name="ExportReportButton"
-                        Content="匯出報告"
-                        Click="ExportReportButton_Click"
-                        Margin="12,0,0,0"
-                        DockPanel.Dock="Left" />
+                        Margin="12,0,0,0" />
                 <Button x:Name="StartFixButton"
+                        Grid.Column="4"
                         Content="修正勾選項目"
                         Click="StartFixButton_Click"
-                        DockPanel.Dock="Right" />
-            </DockPanel>
+                        MinWidth="120"
+                        HorizontalAlignment="Right" />
+            </Grid>
         </Grid>
     </Grid>
 </Window>
