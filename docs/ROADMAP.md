@@ -20,7 +20,7 @@
 - [x] PATH invalid entry check
 - [x] Tool command checks
 - [x] 結果排序
-- [ ] 評分
+- [x] 評分
 - [x] 點擊項目顯示詳細內容
 
 ## Phase 2：第一批安全修正

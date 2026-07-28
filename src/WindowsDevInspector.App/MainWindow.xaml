@@ -145,6 +145,11 @@
                     <TextBlock Text="非 PASS 項目會優先顯示；PASS 項目會排在最後。"
                                Foreground="#5D6B82"
                                Margin="0,4,0,0" />
+                    <TextBlock x:Name="ScoreTextBlock"
+                               Text="Score --/100"
+                               Foreground="#42516A"
+                               FontWeight="SemiBold"
+                               Margin="0,8,0,0" />
                 </StackPanel>
                 <Border DockPanel.Dock="Right"
                         Background="#EAF1FB"

@@ -107,7 +107,7 @@ public partial class MainWindow : Window
         IReadOnlyList<CheckDefinition> checks = checkCatalog.ResolveChecks(selectedTechnologyIds);
         IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks = BuiltInEnvironmentCheckFactory.CreateAll();
 
-        Results.Clear();
+        List<CheckResult> scanResults = [];
 
         foreach (CheckDefinition check in checks)
         {
@@ -115,12 +115,21 @@ public partial class MainWindow : Window
                 ? await executableCheck.RunAsync(CancellationToken.None)
                 : CreatePendingCheckResult(check);
 
+            scanResults.Add(result);
+        }
+
+        EnvironmentScore score = EnvironmentScoreCalculator.Calculate(scanResults);
+
+        Results.Clear();
+        foreach (CheckResult result in CheckResultSorter.Sort(scanResults))
+        {
             Results.Add(new CheckResultRow(result));
         }
 
+        ScoreTextBlock.Text = FormatScore(score);
+
         ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查";
     }
-
     private async void FixAllButton_Click(object sender, RoutedEventArgs e)
     {
         CheckResultRow[] selectableRows = Results
@@ -452,6 +461,11 @@ public partial class MainWindow : Window
             .Select(group => group.Key)
             .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static string FormatScore(EnvironmentScore score)
+    {
+        return $"Score {score.Score}/100 - Critical {score.CriticalCount}, Warning {score.WarningCount}, Info {score.InfoCount}, Pass {score.PassCount}";
     }
 
     private static CheckResult CreatePendingCheckResult(CheckDefinition check)
