@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using WindowsDevInspector.Core;
@@ -12,16 +10,11 @@ namespace WindowsDevInspector.App;
 
 public partial class MainWindow : Window
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true
-    };
-
-    private readonly CheckCatalog checkCatalog = BuiltInCheckCatalog.Create();
-    private readonly DirectoryRemediationExecutor directoryRemediationExecutor = new(
-        BuiltInRemediationCatalog.CreateWhitelist(),
-        new SystemRemediationFileSystem());
+    private readonly EnvironmentScanService scanService = new(
+        BuiltInCheckCatalog.Create(),
+        BuiltInEnvironmentCheckFactory.CreateAll());
+    private readonly RemediationCoordinator remediationCoordinator = new();
+    private readonly ScanReportExporter scanReportExporter = new();
 
     public MainWindow()
     {
@@ -104,29 +97,15 @@ public partial class MainWindow : Window
     {
         string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
-        IReadOnlyList<CheckDefinition> checks = checkCatalog.ResolveChecks(selectedTechnologyIds);
-        IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks = BuiltInEnvironmentCheckFactory.CreateAll();
-
-        List<CheckResult> scanResults = [];
-
-        foreach (CheckDefinition check in checks)
-        {
-            CheckResult result = executableChecks.TryGetValue(check.Id, out IEnvironmentCheck? executableCheck)
-                ? await executableCheck.RunAsync(CancellationToken.None)
-                : CreatePendingCheckResult(check);
-
-            scanResults.Add(result);
-        }
-
-        EnvironmentScore score = EnvironmentScoreCalculator.Calculate(scanResults);
+        EnvironmentScanResult scanResult = await scanService.RunScanAsync(selectedTechnologyIds, CancellationToken.None);
 
         Results.Clear();
-        foreach (CheckResult result in CheckResultSorter.Sort(scanResults))
+        foreach (CheckResult result in scanResult.Results)
         {
             Results.Add(new CheckResultRow(result));
         }
 
-        ScoreTextBlock.Text = FormatScore(score);
+        ScoreTextBlock.Text = FormatScore(scanResult.Score);
 
         ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查";
     }
@@ -152,7 +131,7 @@ public partial class MainWindow : Window
     {
         string? backupPath = BackupComboBox.SelectedItem is BackupFileRow selectedBackup
             ? selectedBackup.FullPath
-            : FindLatestBackupPath();
+            : remediationCoordinator.FindLatestBackupPath();
         if (backupPath is null)
         {
             ScanStatusTextBlock.Text = "找不到可還原的備份檔";
@@ -166,7 +145,7 @@ public partial class MainWindow : Window
 
         try
         {
-            WorkerExecutionResult rollbackResult = await RunElevatedRollbackAsync(backupPath);
+            WorkerExecutionResult rollbackResult = await remediationCoordinator.ExecuteElevatedRollbackAsync(backupPath);
             await RunScanAsync();
             RefreshBackupFiles();
 
@@ -200,21 +179,10 @@ public partial class MainWindow : Window
 
         try
         {
-            string reportDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "WindowsDevInspector",
-                "Reports");
-            Directory.CreateDirectory(reportDirectory);
-
-            string reportPath = Path.Combine(reportDirectory, $"scan-report-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.json");
-            ScanReport report = new()
-            {
-                CreatedAt = DateTimeOffset.UtcNow,
-                SelectedTechnologyIds = GetSelectedTechnologyIds(),
-                Results = Results.Select(result => result.ToReportRow()).ToArray()
-            };
-
-            await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, JsonOptions));
+            string reportPath = await scanReportExporter.ExportAsync(
+                GetSelectedTechnologyIds(),
+                Results,
+                CancellationToken.None);
             ScanStatusTextBlock.Text = $"已匯出報告：{reportPath}";
         }
         catch (IOException ex)
@@ -243,10 +211,13 @@ public partial class MainWindow : Window
         try
         {
             List<RemediationExecutionResult> executionResults = [];
-            foreach (CheckResultRow row in selectedRows.Where(row => !row.RequiresElevation))
-            {
-                executionResults.Add(await directoryRemediationExecutor.ExecuteAsync(row.RemediationId!, CancellationToken.None));
-            }
+            IReadOnlyList<RemediationExecutionResult> localResults =
+                await remediationCoordinator.ExecuteLocalRemediationsAsync(
+                    selectedRows
+                        .Where(row => !row.RequiresElevation)
+                        .Select(row => row.RemediationId!),
+                    CancellationToken.None);
+            executionResults.AddRange(localResults);
 
             CheckResultRow[] elevatedRows = selectedRows
                 .Where(row => row.RequiresElevation)
@@ -254,7 +225,8 @@ public partial class MainWindow : Window
 
             WorkerExecutionResult? workerResult = elevatedRows.Length == 0
                 ? null
-                : await RunElevatedRemediationAsync(elevatedRows);
+                : await remediationCoordinator.ExecuteElevatedRemediationAsync(
+                    elevatedRows.Select(row => row.RemediationId!).ToArray());
             RefreshBackupFiles();
 
             if (workerResult is not null)
@@ -292,164 +264,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private static async Task<WorkerExecutionResult> RunElevatedRemediationAsync(IReadOnlyList<CheckResultRow> rows)
-    {
-        string workerPath = ResolveElevatedWorkerPath();
-        string workDirectory = GetRemediationWorkDirectory();
-        Directory.CreateDirectory(workDirectory);
-
-        string planId = $"plan-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}";
-        string planPath = Path.Combine(workDirectory, $"{planId}.json");
-        string resultPath = Path.Combine(workDirectory, $"{planId}.result.json");
-
-        ChangePlan plan = new()
-        {
-            PlanId = planId,
-            Items = rows
-                .Select(row => new ChangePlanItem { RemediationId = row.RemediationId! })
-                .ToArray()
-        };
-
-        await File.WriteAllTextAsync(planPath, JsonSerializer.Serialize(plan, JsonOptions));
-
-        ProcessStartInfo startInfo = new()
-        {
-            FileName = workerPath,
-            Arguments = $"{Quote(planPath)} {Quote(resultPath)}",
-            UseShellExecute = true,
-            Verb = "runas",
-            WorkingDirectory = Path.GetDirectoryName(workerPath)!
-        };
-
-        using Process? process = Process.Start(startInfo);
-        if (process is null)
-        {
-            throw new OperationCanceledException("ElevatedWorker did not start.");
-        }
-
-        await process.WaitForExitAsync();
-
-        if (!File.Exists(resultPath))
-        {
-            throw new IOException($"ElevatedWorker did not write result file. Exit code: {process.ExitCode}");
-        }
-
-        string resultJson = await File.ReadAllTextAsync(resultPath);
-        return JsonSerializer.Deserialize<WorkerExecutionResult>(resultJson, JsonOptions)
-            ?? WorkerExecutionResult.Failed(planId, ["ElevatedWorker returned invalid JSON."]);
-    }
-
-    private static async Task<WorkerExecutionResult> RunElevatedRollbackAsync(string backupPath)
-    {
-        string workerPath = ResolveElevatedWorkerPath();
-        string workDirectory = GetRemediationWorkDirectory();
-        Directory.CreateDirectory(workDirectory);
-
-        string resultPath = Path.Combine(workDirectory, $"rollback-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}.result.json");
-
-        ProcessStartInfo startInfo = new()
-        {
-            FileName = workerPath,
-            Arguments = $"--rollback {Quote(backupPath)} {Quote(resultPath)}",
-            UseShellExecute = true,
-            Verb = "runas",
-            WorkingDirectory = Path.GetDirectoryName(workerPath)!
-        };
-
-        using Process? process = Process.Start(startInfo);
-        if (process is null)
-        {
-            throw new OperationCanceledException("ElevatedWorker did not start.");
-        }
-
-        await process.WaitForExitAsync();
-
-        if (!File.Exists(resultPath))
-        {
-            throw new IOException($"ElevatedWorker did not write rollback result file. Exit code: {process.ExitCode}");
-        }
-
-        string resultJson = await File.ReadAllTextAsync(resultPath);
-        return JsonSerializer.Deserialize<WorkerExecutionResult>(resultJson, JsonOptions)
-            ?? WorkerExecutionResult.Failed("rollback", ["ElevatedWorker returned invalid JSON."]);
-    }
-
-    private static string? FindLatestBackupPath()
-    {
-        string backupDirectory = Path.Combine(GetRemediationWorkDirectory(), "Backups");
-        if (!Directory.Exists(backupDirectory))
-        {
-            return null;
-        }
-
-        return Directory
-            .EnumerateFiles(backupDirectory, "*.backup.json")
-            .Select(path => new FileInfo(path))
-            .OrderByDescending(file => file.LastWriteTimeUtc)
-            .FirstOrDefault()
-            ?.FullName;
-    }
-
     private void RefreshBackupFiles()
     {
         BackupFiles.Clear();
 
-        string backupDirectory = Path.Combine(GetRemediationWorkDirectory(), "Backups");
-        if (!Directory.Exists(backupDirectory))
+        foreach (BackupFileRow file in remediationCoordinator.GetBackupFiles())
         {
-            return;
-        }
-
-        foreach (FileInfo file in Directory
-            .EnumerateFiles(backupDirectory, "*.backup.json")
-            .Select(path => new FileInfo(path))
-            .OrderByDescending(file => file.LastWriteTimeUtc))
-        {
-            BackupFiles.Add(new BackupFileRow(file));
+            BackupFiles.Add(file);
         }
 
         BackupComboBox.SelectedIndex = BackupFiles.Count > 0 ? 0 : -1;
-    }
-
-    private static string GetRemediationWorkDirectory()
-    {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "WindowsDevInspector",
-            "Remediation");
-    }
-
-    private static string ResolveElevatedWorkerPath()
-    {
-        string outputPath = Path.Combine(AppContext.BaseDirectory, "WindowsDevInspector.ElevatedWorker.exe");
-        if (File.Exists(outputPath))
-        {
-            return outputPath;
-        }
-
-        string developmentPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "WindowsDevInspector.ElevatedWorker",
-            "bin",
-            "Debug",
-            "net10.0-windows",
-            "WindowsDevInspector.ElevatedWorker.exe"));
-
-        if (File.Exists(developmentPath))
-        {
-            return developmentPath;
-        }
-
-        throw new FileNotFoundException("ElevatedWorker executable was not found.", outputPath);
-    }
-
-    private static string Quote(string value)
-    {
-        return string.Concat('"', value.Replace("\"", "\\\"", StringComparison.Ordinal), '"');
     }
 
     private string[] GetSelectedTechnologyIds()
@@ -468,25 +292,4 @@ public partial class MainWindow : Window
         return $"Score {score.Score}/100 - Critical {score.CriticalCount}, Warning {score.WarningCount}, Info {score.InfoCount}, Pass {score.PassCount}";
     }
 
-    private static CheckResult CreatePendingCheckResult(CheckDefinition check)
-    {
-        return new CheckResult
-        {
-            Id = check.Id,
-            Category = check.Category,
-            Name = check.Name,
-            Severity = CheckSeverity.Info,
-            CurrentValue = "檢查尚未執行",
-            ExpectedValue = check.SeverityWhenMissing == CheckSeverity.Warning
-                ? "應可被偵測或設定正確"
-                : "可選檢查或資訊收集",
-            Impact = "目前已完成檢查清單解析；下一步會接上唯讀檢查實作。",
-            CanFix = check.CanFix,
-            Risk = check.Risk,
-            RequiresElevation = check.RequiresElevation,
-            RequiresRestart = check.RequiresRestart,
-            SupportsRollback = check.SupportsRollback,
-            RemediationId = check.RemediationId
-        };
-    }
 }
