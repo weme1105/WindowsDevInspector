@@ -1,3 +1,5 @@
+using WindowsDevInspector.Core;
+
 namespace WindowsDevInspector.Windows;
 
 public static class CommonCheckFactory
@@ -13,7 +15,7 @@ public static class CommonCheckFactory
             new PathDuplicateEntriesCheck(environmentReader),
             new DirectoryExistsCheck("common.directory-source", "Common", "D:\\Source exists", "D:\\Source", fileSystem, "create-source-directory"),
             new DirectoryExistsCheck("common.directory-projects", "Common", "D:\\Projects exists", "D:\\Projects", fileSystem, "create-projects-directory"),
-            new DirectoryExistsCheck("common.directory-gonote", "Common", "D:\\GoNote exists", "D:\\GoNote", fileSystem, "create-gonote-directory"),
+            new DirectoryExistsCheck("common.directory-note", "Common", "D:\\Note exists", "D:\\Note", fileSystem, "create-note-directory"),
             new RegistryDwordCheck(
                 "common.long-paths",
                 "Common",
@@ -38,7 +40,8 @@ public static class CommonCheckFactory
                 "enable-developer-mode"),
             new CommandVersionCheck("common.git", "Common", "Git CLI", "git", "--version", commandRunner),
             new CommandVersionCheck("common.winget", "Common", "winget CLI", "winget", "--version", commandRunner),
-            new CommandVersionCheck("common.powershell7", "Common", "PowerShell 7 CLI", "pwsh", "--version", commandRunner)
+            new CommandVersionCheck("common.powershell7", "Common", "PowerShell 7 CLI", "pwsh", "--version", commandRunner),
+            new CommandVersionCheck("common.chocolatey", "Common", "Chocolatey CLI", "choco", "--version", commandRunner, failureSeverity: CheckSeverity.Info)
         ];
     }
 }

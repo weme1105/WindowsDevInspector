@@ -7,22 +7,26 @@ The project focuses on read-only diagnostics first, then safe and auditable reme
 ## Goals
 
 - Inspect common Windows developer environment prerequisites.
-- Let users select roles and technologies instead of forcing one fixed profile.
+- Let users explicitly select technologies from grouped searchable lists instead of forcing one fixed preset.
 - Show clear results with current value, expected value, impact, risk, and remediation availability.
 - Keep normal UI code read-only and route system changes through a validated elevated worker.
 - Build a small, testable vertical slice before expanding the check catalog.
 
 ## Current Scope
 
-The current implementation is an early MVP for:
+The current implementation covers the initial diagnostics and safe remediation slices:
 
 - Common baseline checks.
-- Role and technology selection.
+- Searchable grouped technology selection.
 - Technology catalog and selected technology persistence.
 - Check result sorting with non-pass items before pass items.
 - Result detail display.
-- Initial read-only Windows checks for directories, registry values, services, optional features, PATH health, and command versions.
-- Initial remediation metadata and whitelist validation.
+- Environment score calculation.
+- Read-only Windows checks for directories, registry values, services, optional features, PATH health, and command versions.
+- Safe remediation metadata and whitelist validation.
+- Approved directory remediation and registry DWORD remediation through the elevated worker.
+- DPAPI-protected backup files and rollback support.
+- Backup browsing and JSON scan report export.
 
 ## Solution Structure
 
@@ -36,6 +40,7 @@ WindowsDevInspector.sln
 │  └─ WindowsDevInspector.ElevatedWorker
 ├─ tests
 │  ├─ WindowsDevInspector.Core.Tests
+│  ├─ WindowsDevInspector.App.Tests
 │  ├─ WindowsDevInspector.Windows.Tests
 │  └─ WindowsDevInspector.Remediation.Tests
 └─ docs
@@ -43,27 +48,19 @@ WindowsDevInspector.sln
 
 ## Architecture
 
-- `WindowsDevInspector.App`: WPF UI, selection state, view models, navigation, and result presentation.
-- `WindowsDevInspector.Core`: domain models, check definitions, result sorting, severity, and risk concepts.
+- `WindowsDevInspector.App`: WPF UI, selection state, scan orchestration, result presentation, report export, backup selection, and worker launch.
+- `WindowsDevInspector.Core`: domain models, check definitions, result sorting, scoring, severity, and risk concepts.
 - `WindowsDevInspector.Windows`: read-only Windows environment checks.
-- `WindowsDevInspector.Remediation`: remediation definitions and whitelist validation.
-- `WindowsDevInspector.ElevatedWorker`: future elevated execution boundary for approved fixes.
+- `WindowsDevInspector.Remediation`: remediation definitions, whitelist validation, backup, rollback, and change plan models.
+- `WindowsDevInspector.ElevatedWorker`: elevated execution boundary for approved fixes and rollback.
 
 The app project must not directly write registry values, modify PATH, install software, enable Windows features, or execute administrator changes.
 
 ## Environment Selection
 
-Users can select one or more roles:
+Users select technologies from grouped searchable lists. Groups may use familiar labels such as Frontend, Backend, Database, QA, DevOps, Mobile, or Desktop for browsing, but group labels do not implicitly select every technology in that area.
 
-- Frontend Engineer
-- Backend Engineer
-- DBA / Data Engineer
-- QA / Test Engineer
-- DevOps / SRE
-- Mobile Engineer
-- Desktop Engineer
-
-Users can also select technologies from grouped searchable lists. Unsupported technologies should still be recognized and reported as informational items when automated diagnostics are not implemented yet.
+Unsupported selected technologies should still be recognized and reported as informational items when automated diagnostics are not implemented yet.
 
 ## Build And Test
 
@@ -84,6 +81,7 @@ For consistent UTF-8 terminal behavior on Windows PowerShell:
 - [Project Spec](docs/PROJECT_SPEC.md)
 - [Check Catalog](docs/CHECK_CATALOG.md)
 - [Environment Profiles](docs/ENVIRONMENT_PROFILES.md)
+- [UI Smoke Tests](docs/UI_SMOKE_TESTS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Codex Development Setup](docs/CODEX_DEVELOPMENT_SETUP.md)
 - [Agent Instructions](AGENTS.md)

@@ -2,7 +2,7 @@
 
 ## 1. Product Purpose
 
-WindowsDevInspector is a Windows desktop application for checking whether a developer workstation is ready for selected roles and technology stacks.
+WindowsDevInspector is a Windows desktop application for checking whether a developer workstation is ready for selected technology stacks.
 
 The product should help a developer answer:
 
@@ -98,16 +98,15 @@ The worker must:
 
 ## 4. User Flow
 
-1. User selects one or more roles.
-2. User selects one or more technologies.
-3. User clicks start check.
-4. App runs common checks plus checks mapped from selected technologies.
-5. Results are sorted with non-pass items first and pass items last.
-6. User selects a result to inspect details.
-7. Supported low-risk fixes may be selected for batch remediation.
-8. Before remediation, the app explains UAC, backup, restart, risk, and rollback.
-9. Elevated worker executes only approved changes.
-10. App runs checks again after remediation.
+1. User selects one or more technologies from grouped searchable lists.
+2. User clicks start check.
+3. App runs common checks plus checks mapped from selected technologies.
+4. Results are sorted with non-pass items first and pass items last.
+5. User selects a result to inspect details.
+6. Supported low-risk fixes may be selected for batch remediation.
+7. Before remediation, the app explains UAC, backup, restart, risk, and rollback.
+8. Elevated worker executes only approved changes.
+9. App runs checks again after remediation.
 
 ## 5. Result Model
 
@@ -145,26 +144,13 @@ Sorting rules:
 
 ## 6. Environment Selection
 
-Profiles are multi-select data, not mutually exclusive presets.
+Technology selection is the only source of technology-driven diagnostics.
 
-Supported role selections:
+The app should not keep a separate role-selection state such as Frontend, Backend, DBA, QA, DevOps, Mobile, or Desktop because those role labels can imply too many unrelated tools. For example, a backend developer who only needs C# should not automatically get Go, Python, Java, Docker, or Redis checks just because Backend was selected.
 
-- Frontend Engineer
-- Backend Engineer
-- DBA / Data Engineer
-- QA / Test Engineer
-- DevOps / SRE
-- Mobile Engineer
-- Desktop Engineer
+Technology selection should be searchable, grouped, and multi-select. Groups may use role-like labels such as Frontend, Backend, Database, QA, DevOps, Mobile, or Desktop for browsing, but selecting a group label must not implicitly select every technology in that group.
 
-Derived labels may be displayed but should not be stored as independent profiles:
-
-- Fullstack: Frontend + Backend
-- Cloud Developer: Backend or DevOps plus a cloud platform/tool
-- Data Platform: Backend + DBA
-- Test Automation: QA plus Frontend or Backend
-
-Technology selection should be searchable, grouped, and multi-select. The catalog source of truth is `docs/ENVIRONMENT_PROFILES.md`.
+The catalog source of truth is `docs/ENVIRONMENT_PROFILES.md`.
 
 ## 7. MVP Check Scope
 
@@ -178,7 +164,7 @@ Common baseline checks:
 - Developer Mode.
 - `D:\Source`.
 - `D:\Projects`.
-- `D:\GoNote`.
+- `D:\Note`.
 - PowerShell 7.
 - Git.
 - winget.
@@ -191,7 +177,7 @@ The first automatic remediation items are limited to:
 
 - Create `D:\Source`.
 - Create `D:\Projects`.
-- Create `D:\GoNote`.
+- Create `D:\Note`.
 - Enable Long Paths.
 - Enable Developer Mode.
 

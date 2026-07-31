@@ -56,17 +56,31 @@ These always run.
 | common.developer-mode | Developer Mode enabled | Common | Windows | Warning | Yes | Low | Yes | No | Yes | enable-developer-mode |
 | common.directory-source | `D:\Source` exists | Common | Windows | Warning | Yes | Low | No | No | Yes | create-source-directory |
 | common.directory-projects | `D:\Projects` exists | Common | Windows | Warning | Yes | Low | No | No | Yes | create-projects-directory |
-| common.directory-gonote | `D:\GoNote` exists | Common | Windows | Info | Yes | Low | No | No | Yes | create-gonote-directory |
+| common.directory-note | `D:\Note` exists | Common | Windows | Info | Yes | Low | No | No | Yes | create-note-directory |
 | common.powershell7 | PowerShell 7 CLI | Common | Windows | Info | No | None | No | No | No | |
 | common.git | Git CLI | Common | Windows | Warning | No | None | No | No | No | |
 | common.winget | winget CLI | Common | Windows | Warning | No | None | No | No | No | |
+| common.chocolatey | Chocolatey CLI | Common | Windows | Info | No | None | No | No | No | |
+
+## Install Planning Checks
+
+These checks are read-only. They use `winget show --id <packageId> --exact --accept-source-agreements` to confirm that a known package ID is available from configured winget sources. They do not compare the latest package version, install packages, modify PATH, accept arbitrary package IDs from the UI, or create remediation plans.
+
+If an installed tool is older than the winget source version, that should be reported as informational context only. The app should not require users to upgrade just because a newer package exists.
+
+| Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Package ID |
+|---|---|---|---|---|---:|---|
+| install.pnpm-winget | pnpm winget package | pnpm | Install Planning | Info | No | pnpm.pnpm |
+| install.azure-cli-winget | Azure CLI winget package | azure-cli | Install Planning | Info | No | Microsoft.AzureCLI |
+| install.kubectl-winget | kubectl winget package | kubectl | Install Planning | Info | No | Kubernetes.kubectl |
+| install.terraform-winget | Terraform winget package | terraform | Install Planning | Info | No | Hashicorp.Terraform |
 
 ## Frontend Checks
 
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
-| frontend.node-cli | Node.js CLI | nodejs, javascript, typescript, react, vue, angular, svelte, vite, nextjs, nuxt | Frontend | Warning | No | Shared with backend, QA, Mobile. |
-| frontend.npm-cli | npm CLI | nodejs, npm, javascript, typescript, react, vue, angular | Frontend | Warning | No | Usually bundled with Node.js. |
+| frontend.node-cli | Node.js CLI | nodejs, javascript, typescript, react, vue, angular, svelte, vite, nextjs, nuxt, tailwindcss | Frontend | Warning | No | Implemented with `node --version`; shared with backend, QA, Mobile. |
+| frontend.npm-cli | npm CLI | nodejs, npm, javascript, typescript, react, vue, angular, nextjs, tailwindcss | Frontend | Warning | No | Usually bundled with Node.js. |
 | frontend.pnpm-cli | pnpm CLI | pnpm, vue, angular, react, vite | Frontend | Info | No | Optional package manager. |
 | frontend.yarn-cli | Yarn CLI | yarn, react, angular, vue | Frontend | Info | No | Optional package manager. |
 | frontend.angular-cli | Angular CLI | angular | Frontend | Warning | No | Check `ng version`. |
@@ -81,12 +95,15 @@ These always run.
 | backend.dotnet-cli | dotnet CLI | dotnet, csharp, aspnetcore | Backend | Warning | No | Shared with Desktop. |
 | backend.dotnet-sdk | .NET SDK version | dotnet, csharp, aspnetcore | Backend | Warning | No | Use `dotnet --list-sdks`. |
 | backend.dotnet-runtime | .NET runtime version | dotnet, csharp, aspnetcore | Backend | Info | No | Use `dotnet --list-runtimes`. |
-| backend.aspnet-runtime | ASP.NET Core runtime | aspnetcore | Backend | Info | No | Use runtime list. |
+| backend.aspnet-runtime | ASP.NET Core runtime | aspnetcore | Backend | Info | No | Implemented with `dotnet --list-runtimes`; detects `Microsoft.AspNetCore.App`. |
 | backend.nuget-sources | NuGet sources | dotnet, csharp, aspnetcore | Backend | Info | No | Must avoid logging credentials. |
 | backend.visualstudio-buildtools | Visual Studio / Build Tools | csharp, cpp, dotnet | Backend | Info | No | Shared with Desktop. |
 | backend.go-cli | Go CLI | go | Backend | Warning | No | Use `go version`. |
 | backend.go-env | Go environment | go | Backend | Info | No | Use `go env`; sanitize output if needed. |
-| backend.python-cli | Python CLI | python, django, fastapi, flask | Backend | Warning | No | Detect `py` and `python`. |
+| backend.python-cli | Python CLI | python, django, fastapi, flask, pytest | Backend | Warning | No | Detect `py` and `python`. |
+| backend.php-cli | PHP CLI | php | Backend | Info | No | Detect `php --version`. |
+| backend.ruby-cli | Ruby CLI | rails, ruby | Backend | Info | No | Detect `ruby --version`. |
+| backend.rust-cli | Rust CLI | rust | Backend | Info | No | Detect `rustc --version`. |
 | backend.java-cli | Java CLI | java, springboot, kotlin | Backend | Warning | No | Detect `java -version`. |
 | backend.docker-cli | Docker CLI | docker | Backend | Info | No | Shared with DevOps. |
 | backend.redis-cli | Redis CLI | redis | Backend | Info | No | Optional client check. |
@@ -117,8 +134,11 @@ These always run.
 | devops.virtual-machine-platform | Virtual Machine Platform | wsl, docker | DevOps | Warning | No | Optional feature read-only. |
 | devops.hyper-v | Hyper-V | docker, kubernetes | DevOps | Info | No | Optional feature read-only. |
 | devops.kubectl | kubectl CLI | kubernetes, kubectl | DevOps | Info | No | Detect `kubectl version --client`. |
+| devops.github-cli | GitHub CLI | github-cli | DevOps | Info | No | Detect `gh --version`. |
 | devops.azure-cli | Azure CLI | azure-cli, azure-developer-cli | DevOps | Info | No | Detect `az version`. |
+| devops.google-cloud-cli | Google Cloud CLI | google-cloud-cli | DevOps | Info | No | Detect `gcloud --version`. |
 | devops.terraform | Terraform CLI | terraform | DevOps | Info | No | Detect `terraform version`. |
+| common.chocolatey | Chocolatey CLI | chocolatey | Common | Info | No | Detects `choco --version` and treats the version as informational current value only. |
 | devops.localhost-bind | localhost bind health | docker, kubernetes, nodejs | DevOps | Info | No | Later network diagnostic. |
 | devops.winnat | WinNAT service/state | docker, wsl | DevOps | Info | No | Read-only service/network check. |
 | devops.hns | Host Network Service | docker, wsl | DevOps | Info | No | Read-only service check. |
@@ -151,9 +171,11 @@ These always run.
 
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
-| desktop.dotnet-desktop-runtime | .NET Desktop Runtime | dotnet-desktop-runtime, wpf, winui3 | Desktop | Info | No | Use runtime list. |
+| desktop.dotnet-desktop-runtime | .NET Desktop Runtime | dotnet-desktop-runtime, wpf, winui3 | Desktop | Info | No | Implemented with `dotnet --list-runtimes`; detects `Microsoft.WindowsDesktop.App`. |
 | desktop.windows-sdk | Windows SDK | windows-sdk, winui3, windows-app-sdk, cpp | Desktop | Info | No | Detect installed kits. |
 | desktop.visualstudio | Visual Studio | visual-studio, wpf, winui3, cpp | Desktop | Info | No | Detect install instances later. |
+| desktop.windows-terminal | Windows Terminal | windows-terminal | Desktop | Info | No | Detect `wt --version`. |
+| desktop.powershell | Windows PowerShell | powershell | Desktop | Info | No | Detect built-in Windows PowerShell availability and display its current version as context only. |
 | desktop.build-tools | Visual Studio Build Tools | visual-studio-build-tools, msvc, cpp | Desktop | Info | No | Shared with backend. |
 | desktop.msbuild | MSBuild | msbuild, visual-studio, visual-studio-build-tools | Desktop | Info | No | Detect command/path. |
 | desktop.cmake | CMake CLI | cmake, cpp, qt | Desktop | Info | No | Detect `cmake --version`. |

@@ -9,7 +9,7 @@ public sealed class DirectoryRemediationExecutor(
         {
             ["create-source-directory"] = "D:\\Source",
             ["create-projects-directory"] = "D:\\Projects",
-            ["create-gonote-directory"] = "D:\\GoNote"
+            ["create-note-directory"] = "D:\\Note"
         };
 
     public Task<RemediationExecutionResult> ExecuteAsync(

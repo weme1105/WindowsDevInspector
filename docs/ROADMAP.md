@@ -12,7 +12,9 @@
 
 ## Phase 1：唯讀掃描 MVP
 
-- [ ] Profile 選擇
+- [x] 技術選擇
+- [x] 選定第一版 MVP 技術範圍
+- [x] 收斂 UI 技術清單到 MVP 範圍
 - [x] Check catalog (`docs/CHECK_CATALOG.md`)
 - [x] Directory checks
 - [x] Long Path check
@@ -44,14 +46,16 @@
 
 ## Phase 4：工具安裝
 
-- [ ] winget abstraction
-- [ ] PowerShell 7
-- [ ] pnpm
-- [ ] Azure CLI
-- [ ] kubectl
-- [ ] Terraform
+- [x] Read-only winget package availability checks
+- [ ] winget abstraction for future installation plans
+- [ ] PowerShell 7 package planning
+- [x] pnpm package planning
+- [x] Azure CLI package planning
+- [x] kubectl package planning
+- [x] Terraform package planning
 - [ ] 安裝後 PATH refresh
-- [ ] 安裝後版本驗證
+- [ ] 安裝後 CLI 可用性驗證
+- [ ] 舊版工具 Info 提示，不強制升級
 
 ## Phase 5：進階 Windows 診斷
 
@@ -66,16 +70,7 @@
 - [ ] Code Integrity events
 - [ ] Smart App Control diagnostics
 
-## Phase 6：Profile Plugin
-
-- [ ] JSON profile schema
-- [ ] Profile validation
-- [ ] Profile versioning
-- [ ] Built-in profiles
-- [ ] External profile loading
-- [ ] 不允許 profile 定義任意命令
-
-## Phase 7：產品化
+## Phase 6：產品化
 
 - [x] Report export
 - [ ] MSIX / installer

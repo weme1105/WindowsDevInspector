@@ -6,7 +6,7 @@ WindowsDevInspector
 
 ## Purpose
 
-WindowsDevInspector is a Windows desktop application for inspecting whether a developer workstation is ready for selected roles and technology stacks.
+WindowsDevInspector is a Windows desktop application for inspecting whether a developer workstation is ready for selected technology stacks.
 
 The product explains what is installed, missing, risky, or ready to use. It prioritizes read-only diagnostics first, then explicit and auditable remediation through a separate elevated worker.
 
@@ -53,7 +53,7 @@ Out of scope for the current implementation:
 - Arbitrary registry editing.
 - Disabling Windows security features.
 - Broad package installation automation.
-- External profile plugin loading.
+- External technology selection loading.
 - Installer, signing, and update distribution.
 
 ## High-Level Architecture

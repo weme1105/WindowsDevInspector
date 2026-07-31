@@ -23,6 +23,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         TechnologyGroups = new ObservableCollection<TechnologyGroup>(TechnologyCatalog.CreateDefaultGroups());
+        AttachTechnologySelectionChangeHandlers();
         Results = new ObservableCollection<CheckResultRow>
         {
             new(new CheckResult
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
             ScanStatusTextBlock.Text = $"已載入 {loadedTechnologyCount} 個儲存選項";
         }
 
+        RefreshTechnologySelectionToggleButton();
         ResultsView.Filter = ShouldShowResult;
     }
 
@@ -54,6 +56,10 @@ public partial class MainWindow : Window
     public ObservableCollection<CheckResultRow> Results { get; }
 
     public ObservableCollection<BackupFileRow> BackupFiles { get; } = [];
+
+    public ObservableCollection<int> ScanConcurrencyOptions { get; } = new(ScanConcurrencySettings.CreateOptions());
+
+    public int SelectedScanConcurrency { get; set; } = ScanConcurrencySettings.DefaultMaxConcurrentChecks;
 
     private ICollectionView ResultsView => CollectionViewSource.GetDefaultView(Results);
 
@@ -104,11 +110,44 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ToggleTechnologySelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        TechnologySelectionToggleResult result = TechnologySelectionToggle.Toggle(TechnologyGroups);
+        RefreshTechnologySelectionToggleButton();
+
+        ScanStatusTextBlock.Text = result.Action == TechnologySelectionToggleAction.SelectedAll
+            ? $"已勾選全部 {result.ChangedCount} 個技術；按「儲存選項」可保留此選擇"
+            : $"已取消全部 {result.ChangedCount} 個技術勾選；按「儲存選項」可保留此選擇";
+    }
+
+    private void RefreshTechnologySelectionToggleButton()
+    {
+        ToggleTechnologySelectionButton.Content = TechnologySelectionToggle.GetButtonLabel(TechnologyGroups);
+    }
+
+    private void AttachTechnologySelectionChangeHandlers()
+    {
+        foreach (TechnologyItem technology in TechnologyGroups.SelectMany(group => group.Technologies))
+        {
+            technology.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(TechnologyItem.IsSelected))
+                {
+                    RefreshTechnologySelectionToggleButton();
+                }
+            };
+        }
+    }
+
     private async Task RunScanAsync()
     {
         string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
-        EnvironmentScanResult scanResult = await scanService.RunScanAsync(selectedTechnologyIds, CancellationToken.None);
+        int scanConcurrency = ScanConcurrencySettings.Clamp(SelectedScanConcurrency);
+        EnvironmentScanResult scanResult = await scanService.RunScanAsync(
+            selectedTechnologyIds,
+            CancellationToken.None,
+            scanConcurrency);
 
         Results.Clear();
         foreach (CheckResult result in scanResult.Results)
@@ -118,7 +157,7 @@ public partial class MainWindow : Window
 
         ScoreTextBlock.Text = FormatScore(scanResult.Score);
 
-        ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查";
+        ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查，併發數 {scanConcurrency}";
     }
     private async void FixAllButton_Click(object sender, RoutedEventArgs e)
     {

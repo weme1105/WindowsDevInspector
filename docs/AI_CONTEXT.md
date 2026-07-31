@@ -122,6 +122,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.App/RemediationCoordinator.cs`
 - `src/WindowsDevInspector.App/ScanReportExporter.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`
+- `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`
 - `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckResultSorter.cs`
@@ -134,6 +135,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`
 - `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`
 - `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`
+- `tests/WindowsDevInspector.App.Tests/TechnologySelectionToggleTests.cs`
 
 ## Important Files
 
@@ -141,7 +143,8 @@ No separate lint or format command is currently documented. Build enforces code 
 - `README.md`: user-facing project overview.
 - `docs/PROJECT_SPEC.md`: product and architecture specification.
 - `docs/CHECK_CATALOG.md`: working check inventory.
-- `docs/ENVIRONMENT_PROFILES.md`: technology and role catalog source.
+- `docs/ENVIRONMENT_PROFILES.md`: technology catalog and grouping source.
+- `docs/MVP_TECHNOLOGY_SCOPE.md`: selected first-version MVP technology list and priority backlog.
 - `docs/ROADMAP.md`: phase progress.
 - `docs/CODEX_DEVELOPMENT_SETUP.md`: local Codex and Windows setup guidance.
 
@@ -154,7 +157,10 @@ No separate lint or format command is currently documented. Build enforces code 
 - `wsl --status` output may be UTF-16LE without BOM; command output decoding must handle raw bytes.
 - `WindowsDevInspector.App` must not directly mutate registry, PATH, Windows features, or install software.
 - Elevated changes must stay inside `WindowsDevInspector.ElevatedWorker`.
-- Current known validation count is 83 passing tests after App-layer service tests were added.
+- `EnvironmentScanService` runs executable checks with bounded concurrency. The WPF UI exposes a scan concurrency dropdown from 1 through `Environment.ProcessorCount`; the default leaves one processor available.
+- PowerShell checks should not compare against the latest version. `desktop.powershell` checks Windows PowerShell availability, and `common.powershell7` checks `pwsh` availability; version output is informational current value only.
+- Chocolatey is represented by `chocolatey` -> `common.chocolatey`, implemented with `choco --version`. Missing Chocolatey should be Info, not Warning.
+- Current known validation count is 136 passing tests after the Chocolatey CLI availability check was added.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
@@ -172,5 +178,6 @@ No separate lint or format command is currently documented. Build enforces code 
 - Important decisions: `docs/DECISION.md`.
 - Detailed product spec: `docs/PROJECT_SPEC.md`.
 - Check inventory: `docs/CHECK_CATALOG.md`.
-- Environment profile catalog: `docs/ENVIRONMENT_PROFILES.md`.
+- Technology catalog and grouping source: `docs/ENVIRONMENT_PROFILES.md`.
+- MVP technology scope: `docs/MVP_TECHNOLOGY_SCOPE.md`.
 - Roadmap: `docs/ROADMAP.md`.

@@ -1,29 +1,20 @@
 ﻿# Environment Profiles
 
-WindowsDevInspector uses a multi-select environment profile. A user can choose one or more roles and one or more languages, frameworks, runtimes, databases, or platform tools. Combined selections replace fixed presets such as fullstack or cloud: for example, selecting Frontend + Backend + Cloud covers a fullstack cloud developer without requiring a separate profile.
+WindowsDevInspector uses explicit technology selection. A user chooses one or more languages, frameworks, runtimes, databases, or platform tools from grouped searchable lists.
 
-## Role Selection
+## Technology Grouping
 
-Role selection is multi-select. The app should always include the Common baseline checks, then add checks from each selected role.
+There is no independent role-selection state. Labels such as Frontend, Backend, Database, QA, DevOps, Mobile, and Desktop may be used as browsing groups, but selecting a group must not automatically select all technologies in that group.
 
 | ID | Name | Purpose |
 |---|---|---|
-| frontend | Frontend Engineer | Browser, JavaScript, TypeScript, package manager, UI framework, build tool, and local HTTPS checks. |
-| backend | Backend Engineer | Runtime, SDK, CLI, API server, service port, package source, certificate, and local service checks. |
-| dba | DBA / Data Engineer | Database client, driver, local engine, migration tool, SQL shell, ODBC/OLE DB, and connectivity checks. |
-| qa | QA / Test Engineer | Browser driver, API test tool, load test tool, device/emulator, report tool, and test runtime checks. |
-| devops | DevOps / SRE | Container, WSL, Kubernetes, cloud CLI, IaC, shell, credential helper, and networking checks. |
-| mobile | Mobile Engineer | Android, iOS-adjacent tooling on Windows, emulator, signing, SDK, and device bridge checks. |
-| desktop | Desktop Engineer | .NET Desktop, Windows SDK, Visual Studio Build Tools, MSIX, signing, and native build checks. |
-
-Derived labels can be shown in the UI but should not be stored as separate profiles:
-
-| Derived Label | Selection Rule |
-|---|---|
-| Fullstack | Frontend + Backend |
-| Cloud Developer | Backend or DevOps + one cloud platform/tool |
-| Data Platform | Backend + DBA |
-| Test Automation | QA + Frontend or Backend |
+| frontend | Frontend | Browser, JavaScript, TypeScript, package manager, UI framework, build tool, and local HTTPS technologies. |
+| backend | Backend | Runtime, SDK, CLI, API server, service port, package source, certificate, and local service technologies. |
+| database | Database | Database client, driver, local engine, migration tool, SQL shell, ODBC/OLE DB, and connectivity technologies. |
+| qa | QA / Testing | Browser driver, API test tool, load test tool, device/emulator, report tool, and test runtime technologies. |
+| devops | DevOps / SRE | Container, WSL, Kubernetes, cloud CLI, IaC, shell, credential helper, and networking technologies. |
+| mobile | Mobile | Android, iOS-adjacent tooling on Windows, emulator, signing, SDK, and device bridge technologies. |
+| desktop | Desktop | .NET Desktop, Windows SDK, Visual Studio Build Tools, MSIX, signing, and native build technologies. |
 
 ## Technology Selection UX
 
@@ -34,8 +25,8 @@ Recommended behavior:
 - Allow selecting multiple items across categories.
 - Support search by name and alias, for example `js` finds JavaScript.
 - Show selected items as removable chips.
-- Keep role selection and technology selection independent.
-- Use selected roles to suggest default technologies, but do not auto-select them without user confirmation.
+- Do not auto-select technologies from a group label.
+- Use groups only for browsing, filtering, and display.
 - Run Common checks even when no role or technology is selected.
 
 ## Frontend Technologies
@@ -155,7 +146,7 @@ The first implementation should not attempt to check every selected item. It sho
 
 MVP supported checks:
 
-- Common: Windows version/build, PATH health, Long Paths, Developer Mode, `D:\Source`, `D:\Projects`, `D:\GoNote`, PowerShell 7, Git, winget.
+- Common: Windows version/build, PATH health, Long Paths, Developer Mode, `D:\Source`, `D:\Projects`, `D:\Note`, PowerShell 7, Git, winget, Chocolatey.
 - Frontend: Node.js, npm, pnpm, Yarn, Angular CLI, Vite, Playwright.
 - Backend: .NET SDK/runtime, Go, Python, Java, Docker, Redis CLI where present.
 - Database: SQL Server tooling, sqlcmd, ODBC Driver, LocalDB, PostgreSQL CLI, MySQL CLI, SQLite.

@@ -12,6 +12,7 @@ public static class BuiltInEnvironmentCheckFactory
         return CommonCheckFactory
             .Create(fileSystem, registryReader, commandRunner, environmentReader)
             .Concat(CreateCliChecks(commandRunner))
+            .Concat(CreatePackageAvailabilityChecks(commandRunner))
             .Concat(CreateWindowsIntegrationChecks(commandRunner, serviceReader))
             .ToDictionary(check => check.Id, StringComparer.OrdinalIgnoreCase);
     }
@@ -22,6 +23,8 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("backend.dotnet-cli", "Backend", "dotnet CLI", "dotnet", "--info", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("backend.dotnet-sdk", "Backend", ".NET SDK version", "dotnet", "--list-sdks", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("backend.dotnet-runtime", "Backend", ".NET runtime version", "dotnet", "--list-runtimes", commandRunner, TimeSpan.FromSeconds(8)),
+            new DotNetRuntimeCheck("backend.aspnet-runtime", "Backend", "ASP.NET Core runtime", "Microsoft.AspNetCore.App", commandRunner),
+            new CommandVersionCheck("frontend.node-cli", "Frontend", "Node.js CLI", "node", "--version", commandRunner),
             new CommandVersionCheck("frontend.npm-cli", "Frontend", "npm CLI", "npm", "--version", commandRunner),
             new CommandVersionCheck("frontend.npm-global-prefix", "Frontend", "npm global prefix", "npm", "prefix -g", commandRunner),
             new CommandVersionCheck("frontend.nvm", "Frontend", "nvm", "nvm", "version", commandRunner),
@@ -34,12 +37,17 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("backend.go-cli", "Backend", "Go CLI", "go", "version", commandRunner),
             new CommandVersionCheck("backend.go-env", "Backend", "Go environment", "go", "env GOVERSION GOPATH GOROOT", commandRunner),
             new CommandVersionCheck("backend.python-cli", "Backend", "Python CLI", "python", "--version", commandRunner),
+            new CommandVersionCheck("backend.php-cli", "Backend", "PHP CLI", "php", "--version", commandRunner),
+            new CommandVersionCheck("backend.ruby-cli", "Backend", "Ruby CLI", "ruby", "--version", commandRunner),
+            new CommandVersionCheck("backend.rust-cli", "Backend", "Rust CLI", "rustc", "--version", commandRunner),
             new CommandVersionCheck("backend.java-cli", "Backend", "Java CLI", "java", "-version", commandRunner),
             new CommandVersionCheck("backend.redis-cli", "Backend", "Redis CLI", "redis-cli", "--version", commandRunner),
             new CommandVersionCheck("devops.docker-cli", "DevOps", "Docker CLI", "docker", "--version", commandRunner),
             new CommandVersionCheck("devops.docker-desktop", "DevOps", "Docker Desktop", "docker", "info", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("devops.kubectl", "DevOps", "kubectl CLI", "kubectl", "version --client", commandRunner),
+            new CommandVersionCheck("devops.github-cli", "DevOps", "GitHub CLI", "gh", "--version", commandRunner),
             new CommandVersionCheck("devops.azure-cli", "DevOps", "Azure CLI", "az", "version", commandRunner, TimeSpan.FromSeconds(8)),
+            new CommandVersionCheck("devops.google-cloud-cli", "DevOps", "Google Cloud CLI", "gcloud", "--version", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("devops.terraform", "DevOps", "Terraform CLI", "terraform", "version", commandRunner),
             new CommandVersionCheck("devops.jenkins", "DevOps", "Jenkins CLI", "jenkins", "--version", commandRunner),
             new CommandVersionCheck("database.sqlcmd-cli", "Database", "sqlcmd CLI", "sqlcmd", "-?", commandRunner),
@@ -55,7 +63,10 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("qa.jmeter", "QA", "JMeter", "jmeter", "--version", commandRunner),
             new CommandVersionCheck("mobile.adb", "Mobile", "ADB CLI", "adb", "version", commandRunner),
             new CommandVersionCheck("mobile.flutter", "Mobile", "Flutter CLI", "flutter", "--version", commandRunner, TimeSpan.FromSeconds(8)),
+            new DotNetRuntimeCheck("desktop.dotnet-desktop-runtime", "Desktop", ".NET Desktop Runtime", "Microsoft.WindowsDesktop.App", commandRunner),
             new CommandVersionCheck("desktop.vscode", "Desktop", "Visual Studio Code", "code", "--version", commandRunner),
+            new CommandVersionCheck("desktop.windows-terminal", "Desktop", "Windows Terminal", "wt", "--version", commandRunner),
+            new CommandVersionCheck("desktop.powershell", "Desktop", "Windows PowerShell", "powershell", "-NoProfile -Command $PSVersionTable.PSVersion.ToString()", commandRunner),
             new CommandVersionCheck("desktop.msbuild", "Desktop", "MSBuild", "msbuild", "-version", commandRunner),
             new CommandVersionCheck("desktop.cmake", "Desktop", "CMake CLI", "cmake", "--version", commandRunner),
             new CommandVersionCheck("desktop.ninja", "Desktop", "Ninja CLI", "ninja", "--version", commandRunner),
@@ -73,6 +84,16 @@ public static class BuiltInEnvironmentCheckFactory
                 "C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\SqlLocalDB.exe"
             ], "SqlLocalDB.exe"),
             new VisualStudioCheck(commandRunner)
+        ];
+    }
+
+    private static IReadOnlyList<IEnvironmentCheck> CreatePackageAvailabilityChecks(ICommandRunner commandRunner)
+    {
+        return [
+            new WingetPackageAvailabilityCheck("install.pnpm-winget", "Install Planning", "pnpm winget package", "pnpm.pnpm", commandRunner),
+            new WingetPackageAvailabilityCheck("install.azure-cli-winget", "Install Planning", "Azure CLI winget package", "Microsoft.AzureCLI", commandRunner),
+            new WingetPackageAvailabilityCheck("install.kubectl-winget", "Install Planning", "kubectl winget package", "Kubernetes.kubectl", commandRunner),
+            new WingetPackageAvailabilityCheck("install.terraform-winget", "Install Planning", "Terraform winget package", "Hashicorp.Terraform", commandRunner)
         ];
     }
 

@@ -5,24 +5,26 @@ namespace WindowsDevInspector.App;
 
 public sealed class EnvironmentScanService(
     CheckCatalog checkCatalog,
-    IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks)
+    IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks,
+    int? maxConcurrentChecks = null)
 {
+    private readonly int defaultMaxConcurrentChecks = Math.Max(1, maxConcurrentChecks ?? ScanConcurrencySettings.DefaultMaxConcurrentChecks);
+
     public async Task<EnvironmentScanResult> RunScanAsync(
         IReadOnlyCollection<string> selectedTechnologyIds,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int? maxConcurrentChecks = null)
     {
         IReadOnlyList<CheckDefinition> checks = checkCatalog.ResolveChecks(selectedTechnologyIds);
 
-        List<CheckResult> scanResults = [];
+        int activeMaxConcurrentChecks = Math.Max(1, maxConcurrentChecks ?? defaultMaxConcurrentChecks);
+        using SemaphoreSlim throttle = new(activeMaxConcurrentChecks);
 
-        foreach (CheckDefinition check in checks)
-        {
-            CheckResult result = executableChecks.TryGetValue(check.Id, out IEnvironmentCheck? executableCheck)
-                ? await executableCheck.RunAsync(cancellationToken)
-                : CreatePendingCheckResult(check);
+        Task<CheckResult>[] scanTasks = checks
+            .Select(check => RunCheckAsync(check, throttle, cancellationToken))
+            .ToArray();
 
-            scanResults.Add(result);
-        }
+        CheckResult[] scanResults = await Task.WhenAll(scanTasks);
 
         CheckResult[] sortedResults = CheckResultSorter.Sort(scanResults).ToArray();
 
@@ -31,6 +33,28 @@ public sealed class EnvironmentScanService(
             Results = sortedResults,
             Score = EnvironmentScoreCalculator.Calculate(sortedResults)
         };
+    }
+
+    private async Task<CheckResult> RunCheckAsync(
+        CheckDefinition check,
+        SemaphoreSlim throttle,
+        CancellationToken cancellationToken)
+    {
+        if (!executableChecks.TryGetValue(check.Id, out IEnvironmentCheck? executableCheck))
+        {
+            return CreatePendingCheckResult(check);
+        }
+
+        await throttle.WaitAsync(cancellationToken);
+
+        try
+        {
+            return await executableCheck.RunAsync(cancellationToken);
+        }
+        finally
+        {
+            throttle.Release();
+        }
     }
 
     private static CheckResult CreatePendingCheckResult(CheckDefinition check)
