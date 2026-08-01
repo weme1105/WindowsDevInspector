@@ -38,6 +38,7 @@ Windows developer workstation diagnostics and safe local environment remediation
 - DPAPI-protected backup files.
 - Backup browser and elevated rollback flow.
 - JSON scan report export.
+- MVP privacy statement, release notes, and demo screenshot capture plan.
 
 ## System Scope
 
@@ -55,6 +56,7 @@ Out of scope for the current implementation:
 - Broad package installation automation.
 - External technology selection loading.
 - Installer, signing, and update distribution.
+- Runtime telemetry or remote report upload.
 
 ## High-Level Architecture
 
@@ -93,9 +95,9 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus Windows baseline checks, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
+The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
-The next development phase should continue small vertical slices for approved installation-plan design, safe diagnostics expansion, and eventual WPF automation or ViewModel extraction.
+The next development phase should focus on approved installation-plan design, installer/signing decisions, and eventual WPF automation or ViewModel extraction.
 
 ## Known Constraints
 

@@ -62,13 +62,13 @@ These technologies should not be treated as complete MVP UI items yet. They were
 
 | Technology ID | Display name | Current gap |
 |---|---|---|
-| `android-sdk` | Android SDK | Core catalog exists, but `mobile.android-sdk` is not implemented. |
+| `android-sdk` | Android SDK | Core mapping and SDK path check exist; emulator/tool-specific diagnostics remain backlog. |
 | `angular` | Angular | Core catalog exists; remaining work is to validate Angular CLI behavior beyond basic command execution. |
-| `cpp` | C++ | Core catalog exists, but `backend.visualstudio-buildtools` is not implemented. |
+| `cpp` | C++ | Core mapping and Visual Studio Build Tools check exist; compiler/toolchain depth remains backlog. |
 | `dotnet-desktop-runtime` | .NET Desktop Runtime | Core mapping exists and reuses the .NET Desktop Runtime check. |
 | `electron` | Electron | UI item exists, but Core technology mapping is not defined. |
 | `flask` | Flask | Core mapping exists for Python CLI; Flask package/project diagnostics remain backlog. |
-| `flutter` | Flutter | Core catalog exists, but `mobile.android-sdk` is not implemented. |
+| `flutter` | Flutter | Core mapping, Flutter CLI check, and Android SDK path check exist; project-specific Flutter diagnostics remain backlog. |
 | `github-cli` | GitHub CLI | Core mapping and CLI check exist; workflow-specific GitHub diagnostics remain backlog. |
 | `google-cloud-cli` | Google Cloud CLI | Core mapping and CLI check exist; cloud auth/project diagnostics remain backlog. |
 | `nextjs` | Next.js | Core catalog mapping exists for Node.js and npm; framework-specific diagnostics remain backlog. |

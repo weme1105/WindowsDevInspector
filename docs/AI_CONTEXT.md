@@ -21,6 +21,7 @@
 - File system checks and approved directory creation.
 - Environment variable inspection for PATH diagnostics.
 - Read-only developer tooling checks for NuGet sources, Visual Studio Build Tools, common browsers, Android SDK paths, and .NET MAUI workloads.
+- Read-only WSL and Docker diagnostics with explicit status/version/distribution/engine/service summaries.
 
 ### Testing
 
@@ -147,6 +148,9 @@ No separate lint or format command is currently documented. Build enforces code 
 - `docs/CHECK_CATALOG.md`: working check inventory.
 - `docs/ENVIRONMENT_PROFILES.md`: technology catalog and grouping source.
 - `docs/MVP_TECHNOLOGY_SCOPE.md`: selected first-version MVP technology list and priority backlog.
+- `docs/PRIVACY.md`: MVP privacy and local-data handling statement.
+- `docs/RELEASE_NOTES.md`: MVP release notes and known limitations.
+- `docs/DEMO_SCREENSHOTS.md`: screenshot capture plan and safety checklist.
 - `docs/ROADMAP.md`: phase progress.
 - `docs/CODEX_DEVELOPMENT_SETUP.md`: local Codex and Windows setup guidance.
 
@@ -167,7 +171,9 @@ No separate lint or format command is currently documented. Build enforces code 
 - Browser availability diagnostics must not launch browsers or inspect user profiles, cookies, or browser data.
 - Android SDK diagnostics may inspect `ANDROID_HOME`, `ANDROID_SDK_ROOT`, common SDK paths, and SDK tool file presence; they must not modify environment variables.
 - .NET MAUI diagnostics use `dotnet workload list` read-only output and must not install workloads or modify dotnet configuration.
-- Current known validation count is 164 passing tests after all current Core catalog check IDs were backed by executable checks.
+- WSL diagnostics use `wsl --status`, `wsl --version`, and `wsl --list --verbose` through `ICommandRunner`; these commands must remain read-only and should not install distributions or modify WSL configuration.
+- Docker diagnostics use `docker --version`, `docker info`, and read-only Windows service status checks; they must not start Docker Desktop, change services, or modify networking.
+- Current known validation count is 174 passing tests after MVP WSL/Docker diagnostics were clarified.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
@@ -187,4 +193,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - Check inventory: `docs/CHECK_CATALOG.md`.
 - Technology catalog and grouping source: `docs/ENVIRONMENT_PROFILES.md`.
 - MVP technology scope: `docs/MVP_TECHNOLOGY_SCOPE.md`.
+- Privacy statement: `docs/PRIVACY.md`.
+- Release notes: `docs/RELEASE_NOTES.md`.
+- Demo screenshot plan: `docs/DEMO_SCREENSHOTS.md`.
 - Roadmap: `docs/ROADMAP.md`.

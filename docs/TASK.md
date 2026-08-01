@@ -10,10 +10,7 @@ No active implementation task.
 
 ## Ready
 
-- [ ] Expand WSL and Docker diagnostics.
-  - Completion criteria: WSL, Virtual Machine Platform, Hyper-V, Docker service, WinNAT, and HNS checks report clear current/expected/impact values.
-  - Related files: `src/WindowsDevInspector.Windows`, `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `tests/WindowsDevInspector.Windows.Tests`.
-  - Verification: unit tests with fakes plus manual read-only scan on Windows.
+No ready implementation task for MVP environment checks.
 
 ## Blocked
 
@@ -37,6 +34,21 @@ No active implementation task.
   - Completed: added read-only executable checks for NuGet sources, Visual Studio Build Tools, browser availability, Android SDK, and .NET MAUI workload; added a catalog/factory consistency test so every current `BuiltInCheckCatalog.Create()` check ID has an executable `IEnvironmentCheck`.
   - Related files: `src/WindowsDevInspector.Windows/NuGetSourcesCheck.cs`, `src/WindowsDevInspector.Windows/VisualStudioBuildToolsCheck.cs`, `src/WindowsDevInspector.Windows/BrowserAvailabilityCheck.cs`, `src/WindowsDevInspector.Windows/AndroidSdkCheck.cs`, `src/WindowsDevInspector.Windows/DotNetMauiWorkloadCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests`.
   - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
+
+- [x] Expand WSL and Docker diagnostics for MVP readiness.
+  - Completed: WSL installed/version/distribution checks now return clearer read-only summaries; Docker Desktop engine reachability uses a dedicated `docker info` check; Docker Desktop service and HNS checks can warn when expected services are not running while WinNAT remains a read-only presence/status check.
+  - Related files: `src/WindowsDevInspector.Windows/WslStatusCheck.cs`, `src/WindowsDevInspector.Windows/WslVersionCheck.cs`, `src/WindowsDevInspector.Windows/WslDistributionsCheck.cs`, `src/WindowsDevInspector.Windows/DockerDesktopCheck.cs`, `src/WindowsDevInspector.Windows/ServiceStatusCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests`.
+  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
+
+- [x] Complete MVP validation pass.
+  - Completed: Release build and test passed; WPF app launch smoke passed; manual WPF UI smoke checklist was completed by the user.
+  - Related files: `docs/UI_SMOKE_TESTS.md`, `docs/TASK.md`.
+  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`; manual WPF smoke checklist.
+
+- [x] Add MVP release documentation.
+  - Completed: added privacy statement, release notes, and demo screenshot capture plan; README and project documentation now link to the MVP release artifacts.
+  - Related files: `docs/PRIVACY.md`, `docs/RELEASE_NOTES.md`, `docs/DEMO_SCREENSHOTS.md`, `README.md`, `docs/PROJECT.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
+  - Verification: documentation review; build/test should be rerun before commit because repository documentation changed after the last validation run.
 
 - [x] Complete first-pass result remediation selection behavior.
   - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
@@ -203,6 +215,7 @@ No active implementation task.
 
 - [ ] Design approved installation plan schema before enabling any package installation.
 - [ ] Pending executable checks in current Core catalog: none.
+- [ ] Actual demo screenshot image files are not checked in yet; capture and inspect non-sensitive images before adding `docs/images/` assets.
 
 ## Known Issues
 

@@ -1,3 +1,5 @@
+using WindowsDevInspector.Core;
+
 namespace WindowsDevInspector.Windows;
 
 public static class BuiltInEnvironmentCheckFactory
@@ -44,7 +46,7 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("backend.java-cli", "Backend", "Java CLI", "java", "-version", commandRunner),
             new CommandVersionCheck("backend.redis-cli", "Backend", "Redis CLI", "redis-cli", "--version", commandRunner),
             new CommandVersionCheck("devops.docker-cli", "DevOps", "Docker CLI", "docker", "--version", commandRunner),
-            new CommandVersionCheck("devops.docker-desktop", "DevOps", "Docker Desktop", "docker", "info", commandRunner, TimeSpan.FromSeconds(8)),
+            new DockerDesktopCheck(commandRunner),
             new CommandVersionCheck("devops.kubectl", "DevOps", "kubectl CLI", "kubectl", "version --client", commandRunner),
             new CommandVersionCheck("devops.github-cli", "DevOps", "GitHub CLI", "gh", "--version", commandRunner),
             new CommandVersionCheck("devops.azure-cli", "DevOps", "Azure CLI", "az", "version", commandRunner, TimeSpan.FromSeconds(8)),
@@ -107,14 +109,40 @@ public static class BuiltInEnvironmentCheckFactory
         IEnvironmentVariableReader environmentReader)
     {
         return [
-            new CommandVersionCheck("devops.wsl", "DevOps", "WSL installed", "wsl", "--status", commandRunner, TimeSpan.FromSeconds(8)),
-            new CommandVersionCheck("devops.wsl-version", "DevOps", "WSL version", "wsl", "--version", commandRunner, TimeSpan.FromSeconds(8)),
-            new CommandVersionCheck("devops.wsl-distros", "DevOps", "WSL distributions", "wsl", "--list --verbose", commandRunner, TimeSpan.FromSeconds(8)),
+            new WslStatusCheck(commandRunner),
+            new WslVersionCheck(commandRunner),
+            new WslDistributionsCheck(commandRunner),
             new OptionalFeatureCheck("devops.virtual-machine-platform", "DevOps", "Virtual Machine Platform", "VirtualMachinePlatform", commandRunner),
             new OptionalFeatureCheck("devops.hyper-v", "DevOps", "Hyper-V", "Microsoft-Hyper-V-All", commandRunner),
-            new ServiceStatusCheck("devops.winnat", "DevOps", "WinNAT service", "WinNat", serviceReader),
-            new ServiceStatusCheck("devops.hns", "DevOps", "Host Network Service", "hns", serviceReader),
-            new ServiceStatusCheck("devops.docker-service", "DevOps", "Docker Desktop service", "com.docker.service", serviceReader),
+            new ServiceStatusCheck(
+                "devops.winnat",
+                "DevOps",
+                "WinNAT service",
+                "WinNat",
+                serviceReader,
+                expectedValue: "WinNat service exists and can be inspected",
+                missingImpact: "WinNAT is used by local container and WSL networking. If it is missing, Docker or WSL networking may be unavailable.",
+                availableImpact: "WinNAT service is present for local virtualization networking."),
+            new ServiceStatusCheck(
+                "devops.hns",
+                "DevOps",
+                "Host Network Service",
+                "hns",
+                serviceReader,
+                expectedStatus: "Running",
+                severityWhenUnexpected: CheckSeverity.Warning,
+                missingImpact: "Host Network Service should be running for Docker, WSL, and Kubernetes networking.",
+                availableImpact: "Host Network Service is running for local container networking."),
+            new ServiceStatusCheck(
+                "devops.docker-service",
+                "DevOps",
+                "Docker Desktop service",
+                "com.docker.service",
+                serviceReader,
+                expectedStatus: "Running",
+                severityWhenUnexpected: CheckSeverity.Warning,
+                missingImpact: "Docker Desktop service should be running for Docker Desktop workflows.",
+                availableImpact: "Docker Desktop service is running."),
             new BrowserAvailabilityCheck(fileSystem),
             new AndroidSdkCheck(environmentReader, fileSystem),
             new FileExistsCheck("desktop.windows-sdk", "Desktop", "Windows SDK", [

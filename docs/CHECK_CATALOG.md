@@ -127,12 +127,12 @@ If an installed tool is older than the winget source version, that should be rep
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
 | devops.docker-cli | Docker CLI | docker, docker-desktop | DevOps | Warning | No | Shared with backend. |
-| devops.docker-desktop | Docker Desktop | docker, docker-desktop | DevOps | Warning | No | Detect app/service. |
-| devops.wsl | WSL installed | wsl, docker, kubernetes | DevOps | Warning | No | Use `wsl --status`. |
-| devops.wsl-version | WSL version | wsl | DevOps | Info | No | Detect WSL 1 vs 2. |
-| devops.wsl-distros | WSL distributions | wsl | DevOps | Info | No | Use `wsl --list --verbose`. |
-| devops.virtual-machine-platform | Virtual Machine Platform | wsl, docker | DevOps | Warning | No | Optional feature read-only. |
-| devops.hyper-v | Hyper-V | docker, kubernetes | DevOps | Info | No | Optional feature read-only. |
+| devops.docker-desktop | Docker Desktop | docker, docker-desktop | DevOps | Warning | No | Implemented with read-only `docker info`; reports whether the Docker engine is reachable without starting Docker Desktop. |
+| devops.wsl | WSL installed | wsl, docker, kubernetes | DevOps | Warning | No | Implemented with read-only `wsl --status`; summarizes installed WSL status. |
+| devops.wsl-version | WSL version | wsl | DevOps | Info | No | Implemented with read-only `wsl --version`; version is informational and is not compared to latest. |
+| devops.wsl-distros | WSL distributions | wsl | DevOps | Info | No | Implemented with read-only `wsl --list --verbose`; reports listed distributions. |
+| devops.virtual-machine-platform | Virtual Machine Platform | wsl, docker | DevOps | Warning | No | Implemented with read-only DISM feature inspection. |
+| devops.hyper-v | Hyper-V | docker, kubernetes | DevOps | Info | No | Implemented with read-only DISM feature inspection. |
 | devops.kubectl | kubectl CLI | kubernetes, kubectl | DevOps | Info | No | Detect `kubectl version --client`. |
 | devops.github-cli | GitHub CLI | github-cli | DevOps | Info | No | Detect `gh --version`. |
 | devops.azure-cli | Azure CLI | azure-cli, azure-developer-cli | DevOps | Info | No | Detect `az version`. |
@@ -140,8 +140,8 @@ If an installed tool is older than the winget source version, that should be rep
 | devops.terraform | Terraform CLI | terraform | DevOps | Info | No | Detect `terraform version`. |
 | common.chocolatey | Chocolatey CLI | chocolatey | Common | Info | No | Detects `choco --version` and treats the version as informational current value only. |
 | devops.localhost-bind | localhost bind health | docker, kubernetes, nodejs | DevOps | Info | No | Later network diagnostic. |
-| devops.winnat | WinNAT service/state | docker, wsl | DevOps | Info | No | Read-only service/network check. |
-| devops.hns | Host Network Service | docker, wsl | DevOps | Info | No | Read-only service check. |
+| devops.winnat | WinNAT service/state | docker, wsl | DevOps | Info | No | Implemented with read-only service inspection for WinNAT presence/status. |
+| devops.hns | Host Network Service | docker, wsl | DevOps | Info | No | Implemented with read-only service inspection; warns when HNS is present but not running. |
 
 ## QA And Automation Checks
 

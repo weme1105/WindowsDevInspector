@@ -23,6 +23,7 @@ The current implementation covers the initial diagnostics and safe remediation s
 - Result detail display.
 - Environment score calculation.
 - Read-only Windows checks for directories, registry values, services, optional features, PATH health, and command versions.
+- Read-only WSL, Docker, NuGet source, Visual Studio Build Tools, browser availability, Android SDK, and .NET MAUI diagnostics.
 - Safe remediation metadata and whitelist validation.
 - Approved directory remediation and registry DWORD remediation through the elevated worker.
 - DPAPI-protected backup files and rollback support.
@@ -82,6 +83,9 @@ For consistent UTF-8 terminal behavior on Windows PowerShell:
 - [Check Catalog](docs/CHECK_CATALOG.md)
 - [Environment Profiles](docs/ENVIRONMENT_PROFILES.md)
 - [UI Smoke Tests](docs/UI_SMOKE_TESTS.md)
+- [Privacy Statement](docs/PRIVACY.md)
+- [Release Notes](docs/RELEASE_NOTES.md)
+- [Demo Screenshots](docs/DEMO_SCREENSHOTS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Codex Development Setup](docs/CODEX_DEVELOPMENT_SETUP.md)
 - [Agent Instructions](AGENTS.md)

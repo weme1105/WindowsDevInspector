@@ -59,12 +59,12 @@
 
 ## Phase 5：進階 Windows 診斷
 
-- [ ] WSL
-- [ ] Virtual Machine Platform
-- [ ] Hyper-V
-- [ ] Docker Desktop
-- [ ] WinNAT
-- [ ] HNS
+- [x] WSL
+- [x] Virtual Machine Platform
+- [x] Hyper-V
+- [x] Docker Desktop
+- [x] WinNAT
+- [x] HNS
 - [ ] Firewall
 - [ ] localhost bind
 - [ ] Code Integrity events
