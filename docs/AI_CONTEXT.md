@@ -22,6 +22,7 @@
 - Environment variable inspection for PATH diagnostics.
 - Read-only developer tooling checks for NuGet sources, Visual Studio Build Tools, common browsers, Android SDK paths, and .NET MAUI workloads.
 - Read-only WSL and Docker diagnostics with explicit status/version/distribution/engine/service summaries.
+- Read-only advanced Windows diagnostics for firewall profile state, localhost bind health, recent Code Integrity events, and Smart App Control policy state.
 
 ### Testing
 
@@ -173,6 +174,10 @@ No separate lint or format command is currently documented. Build enforces code 
 - .NET MAUI diagnostics use `dotnet workload list` read-only output and must not install workloads or modify dotnet configuration.
 - WSL diagnostics use `wsl --status`, `wsl --version`, and `wsl --list --verbose` through `ICommandRunner`; these commands must remain read-only and should not install distributions or modify WSL configuration.
 - Docker diagnostics use `docker --version`, `docker info`, and read-only Windows service status checks; they must not start Docker Desktop, change services, or modify networking.
+- Firewall diagnostics use read-only `netsh advfirewall show allprofiles state`; they must not enable, disable, or rewrite firewall policy.
+- localhost bind diagnostics may open a short-lived ephemeral listener on `127.0.0.1` through `ILocalhostBindProbe`, then close it immediately; they must not reserve fixed ports or modify firewall/network configuration.
+- Code Integrity diagnostics use read-only `wevtutil` queries against `Microsoft-Windows-CodeIntegrity/Operational`; they must not change event log channels or Windows security policy.
+- Smart App Control diagnostics inspect `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState` read-only when present; they must never disable or toggle Smart App Control.
 - Current known validation count is 174 passing tests after MVP WSL/Docker diagnostics were clarified.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 

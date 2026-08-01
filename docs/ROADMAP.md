@@ -65,10 +65,10 @@
 - [x] Docker Desktop
 - [x] WinNAT
 - [x] HNS
-- [ ] Firewall
-- [ ] localhost bind
-- [ ] Code Integrity events
-- [ ] Smart App Control diagnostics
+- [x] Firewall
+- [x] localhost bind
+- [x] Code Integrity events
+- [x] Smart App Control diagnostics
 
 ## Phase 6：產品化
 

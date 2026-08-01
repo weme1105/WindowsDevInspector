@@ -22,7 +22,7 @@ Rules:
 - Display groups are views only; they do not own technology state.
 - A technology may appear in multiple groups.
 - Check IDs are unique and are deduplicated before execution.
-- Common checks always run, even when no technology is selected.
+- Common and Security baseline checks always run, even when no technology is selected.
 - Unsupported selected technologies produce an `Info` result that says diagnostics are not implemented yet.
 
 ## Check Definition Shape
@@ -62,6 +62,16 @@ These always run.
 | common.winget | winget CLI | Common | Windows | Warning | No | None | No | No | No | |
 | common.chocolatey | Chocolatey CLI | Common | Windows | Info | No | None | No | No | No | |
 
+## Security Baseline Checks
+
+These always run and are read-only.
+
+| Check ID | Name | Category | Implementation | Missing severity | Can fix | Risk | Elevation | Restart | Rollback | Notes |
+|---|---|---|---|---|---:|---|---:|---:|---:|---|
+| security.firewall-profiles | Firewall profiles | Security | Windows | Info | No | None | No | No | No | Implemented with read-only `netsh advfirewall show allprofiles state`; reports Domain, Private, and Public profile state. |
+| security.code-integrity-events | Code Integrity events | Security | Windows | Info | No | None | No | No | No | Implemented with read-only `wevtutil` query for recent `Microsoft-Windows-CodeIntegrity/Operational` events. |
+| security.smart-app-control | Smart App Control diagnostics | Security | Windows | Info | No | None | No | No | No | Implemented with read-only registry inspection of Smart App Control policy state when Windows exposes it. |
+
 ## Install Planning Checks
 
 These checks are read-only. They use `winget show --id <packageId> --exact --accept-source-agreements` to confirm that a known package ID is available from configured winget sources. They do not compare the latest package version, install packages, modify PATH, accept arbitrary package IDs from the UI, or create remediation plans.
@@ -79,14 +89,15 @@ If an installed tool is older than the winget source version, that should be rep
 
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
-| frontend.node-cli | Node.js CLI | nodejs, javascript, typescript, react, vue, angular, svelte, vite, nextjs, nuxt, tailwindcss | Frontend | Warning | No | Implemented with `node --version`; shared with backend, QA, Mobile. |
-| frontend.npm-cli | npm CLI | nodejs, npm, javascript, typescript, react, vue, angular, nextjs, tailwindcss | Frontend | Warning | No | Usually bundled with Node.js. |
+| frontend.node-cli | Node.js CLI | nodejs, javascript, typescript, react, vue, angular, svelte, vite, nextjs, nuxt, tailwindcss, electron, react-native | Frontend | Warning | No | Implemented with `node --version`; shared with backend, QA, Mobile. |
+| frontend.npm-cli | npm CLI | nodejs, npm, javascript, typescript, react, vue, angular, nextjs, tailwindcss, electron, react-native | Frontend | Warning | No | Usually bundled with Node.js. |
 | frontend.pnpm-cli | pnpm CLI | pnpm, vue, angular, react, vite | Frontend | Info | No | Optional package manager. |
 | frontend.yarn-cli | Yarn CLI | yarn, react, angular, vue | Frontend | Info | No | Optional package manager. |
 | frontend.angular-cli | Angular CLI | angular | Frontend | Warning | No | Check `ng version`. |
 | frontend.vite-cli | Vite CLI | vite, vue, react, svelte | Frontend | Info | No | Check local/global availability later. |
 | frontend.playwright-cli | Playwright CLI | playwright | Frontend | Info | No | Shared with QA. |
 | frontend.npm-global-prefix | npm global prefix | npm, nodejs | Frontend | Info | No | Detect path problems. |
+| frontend.electron-package | Electron package | electron | Frontend | Info | No | First-pass package presence check with read-only `npm list -g electron --depth=0`; project-local package diagnostics remain backlog. |
 
 ## Backend Checks
 
@@ -101,9 +112,12 @@ If an installed tool is older than the winget source version, that should be rep
 | backend.go-cli | Go CLI | go | Backend | Warning | No | Use `go version`. |
 | backend.go-env | Go environment | go | Backend | Info | No | Use `go env`; sanitize output if needed. |
 | backend.python-cli | Python CLI | python, django, fastapi, flask, pytest | Backend | Warning | No | Detect `py` and `python`. |
+| backend.flask-package | Flask package | flask | Backend | Info | No | First-pass package check with `python -m flask --version`; project-local dependency analysis remains backlog. |
 | backend.php-cli | PHP CLI | php | Backend | Info | No | Detect `php --version`. |
 | backend.ruby-cli | Ruby CLI | rails, ruby | Backend | Info | No | Detect `ruby --version`. |
+| backend.rails-gem | Rails gem | rails | Backend | Info | No | First-pass Rails CLI/gem check with `rails --version`; project-local bundle diagnostics remain backlog. |
 | backend.rust-cli | Rust CLI | rust | Backend | Info | No | Detect `rustc --version`. |
+| backend.cargo-cli | Cargo CLI | rust | Backend | Info | No | Detect `cargo --version` as the first Rust toolchain depth check. |
 | backend.java-cli | Java CLI | java, springboot, kotlin | Backend | Warning | No | Detect `java -version`. |
 | backend.docker-cli | Docker CLI | docker | Backend | Info | No | Shared with DevOps. |
 | backend.redis-cli | Redis CLI | redis | Backend | Info | No | Optional client check. |
@@ -139,7 +153,7 @@ If an installed tool is older than the winget source version, that should be rep
 | devops.google-cloud-cli | Google Cloud CLI | google-cloud-cli | DevOps | Info | No | Detect `gcloud --version`. |
 | devops.terraform | Terraform CLI | terraform | DevOps | Info | No | Detect `terraform version`. |
 | common.chocolatey | Chocolatey CLI | chocolatey | Common | Info | No | Detects `choco --version` and treats the version as informational current value only. |
-| devops.localhost-bind | localhost bind health | docker, kubernetes, nodejs | DevOps | Info | No | Later network diagnostic. |
+| devops.localhost-bind | localhost bind health | docker, kubernetes, nodejs, electron, flask, rails, react-native | DevOps | Warning | No | Implemented with an ephemeral TCP bind to `127.0.0.1`; does not keep a listener open or modify network configuration. |
 | devops.winnat | WinNAT service/state | docker, wsl | DevOps | Info | No | Implemented with read-only service inspection for WinNAT presence/status. |
 | devops.hns | Host Network Service | docker, wsl | DevOps | Info | No | Implemented with read-only service inspection; warns when HNS is present but not running. |
 
@@ -149,6 +163,7 @@ If an installed tool is older than the winget source version, that should be rep
 |---|---|---|---|---|---:|---|
 | qa.playwright | Playwright availability | playwright | QA | Info | No | Shared with frontend. |
 | qa.browser-availability | Browser availability | playwright, selenium, cypress, webdriverio | QA | Info | No | Implemented with standard executable path checks for Edge, Chrome, and Firefox; does not launch browsers or inspect profiles/cookies. |
+| qa.pytest-package | pytest package | pytest | QA | Info | No | First-pass package check with `python -m pytest --version`; project-local test discovery remains backlog. |
 | qa.selenium | Selenium tooling | selenium, webdriverio | QA | Info | No | First pass can be catalog Info only. |
 | qa.postman | Postman | postman, newman | QA | Info | No | Detect app or CLI. |
 | qa.newman | Newman CLI | newman, postman | QA | Info | No | Detect CLI. |
@@ -160,11 +175,12 @@ If an installed tool is older than the winget source version, that should be rep
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
 | mobile.android-sdk | Android SDK | android-sdk, android-studio, flutter, react-native | Mobile | Info | No | Implemented with `ANDROID_HOME`, `ANDROID_SDK_ROOT`, common SDK paths, and `platform-tools\adb.exe` presence checks; does not modify environment variables. |
-| mobile.adb | ADB CLI | adb, android-sdk, android-studio | Mobile | Info | No | Detect `adb version`. |
+| mobile.adb | ADB CLI | adb, android-sdk, android-studio, react-native | Mobile | Info | No | Detect `adb version`. |
 | mobile.android-emulator | Android Emulator | android-emulator, android-studio | Mobile | Info | No | Detect emulator tool. |
 | mobile.gradle | Gradle | gradle, android-studio, kotlin, java | Mobile | Info | No | Detect `gradle` or wrapper later. |
 | mobile.flutter | Flutter CLI | flutter, dart | Mobile | Info | No | Detect `flutter --version`. |
-| mobile.react-native | React Native tooling | react-native, expo | Mobile | Info | No | Depends on Node.js checks. |
+| mobile.react-native | React Native tooling | react-native, expo | Mobile | Info | No | Core mapping now resolves React Native to Node.js, npm, Android SDK, ADB, and localhost bind diagnostics; React Native CLI/project diagnostics remain backlog. |
+| mobile.swift-cli | Swift CLI | swift | Mobile | Info | No | First-pass Swift command check with `swift --version`. |
 | mobile.dotnet-maui | .NET MAUI workload | dotnet-maui, maui-check | Mobile | Info | No | Implemented with read-only `dotnet workload list`; does not install workloads. |
 
 ## Desktop Checks

@@ -95,7 +95,7 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
+The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, advanced read-only Windows diagnostics for firewall profiles, localhost bind health, Code Integrity events, and Smart App Control state, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
 The next development phase should focus on approved installation-plan design, installer/signing decisions, and eventual WPF automation or ViewModel extraction.
 

@@ -22,7 +22,7 @@ public sealed class CheckCatalog(
 
         if (includeCommonChecks)
         {
-            foreach (CheckDefinition check in checksById.Values.Where(check => check.Category.Equals("Common", StringComparison.OrdinalIgnoreCase)))
+            foreach (CheckDefinition check in checksById.Values.Where(IsBaselineCheck))
             {
                 checkIds.Add(check.Id);
             }
@@ -48,5 +48,11 @@ public sealed class CheckCatalog(
             .OrderBy(check => check.Category, StringComparer.OrdinalIgnoreCase)
             .ThenBy(check => check.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static bool IsBaselineCheck(CheckDefinition check)
+    {
+        return check.Category.Equals("Common", StringComparison.OrdinalIgnoreCase)
+            || check.Category.Equals("Security", StringComparison.OrdinalIgnoreCase);
     }
 }

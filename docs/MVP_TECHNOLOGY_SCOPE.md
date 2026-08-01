@@ -66,8 +66,8 @@ These technologies should not be treated as complete MVP UI items yet. They were
 | `angular` | Angular | Core catalog exists; remaining work is to validate Angular CLI behavior beyond basic command execution. |
 | `cpp` | C++ | Core mapping and Visual Studio Build Tools check exist; compiler/toolchain depth remains backlog. |
 | `dotnet-desktop-runtime` | .NET Desktop Runtime | Core mapping exists and reuses the .NET Desktop Runtime check. |
-| `electron` | Electron | UI item exists, but Core technology mapping is not defined. |
-| `flask` | Flask | Core mapping exists for Python CLI; Flask package/project diagnostics remain backlog. |
+| `electron` | Electron | Core mapping now exists for Node.js, npm, Electron package presence, and localhost bind; project-local Electron diagnostics remain backlog. |
+| `flask` | Flask | Core mapping now includes Python CLI, Flask package presence, and localhost bind; project-local Flask diagnostics remain backlog. |
 | `flutter` | Flutter | Core mapping, Flutter CLI check, and Android SDK path check exist; project-specific Flutter diagnostics remain backlog. |
 | `github-cli` | GitHub CLI | Core mapping and CLI check exist; workflow-specific GitHub diagnostics remain backlog. |
 | `google-cloud-cli` | Google Cloud CLI | Core mapping and CLI check exist; cloud auth/project diagnostics remain backlog. |
@@ -75,13 +75,13 @@ These technologies should not be treated as complete MVP UI items yet. They were
 | `nodejs` | Node.js | Core catalog exists; Node.js CLI check is implemented, but package manager/version policy still needs MVP review. |
 | `php` | PHP | Core mapping and PHP CLI check exist; framework/package diagnostics remain backlog. |
 | `powershell` | PowerShell | Core mapping and Windows PowerShell CLI check exist. |
-| `pytest` | pytest | Core mapping exists for Python CLI; pytest package diagnostics remain backlog. |
-| `rails` | Ruby on Rails | Core mapping and Ruby CLI check exist; Rails gem/project diagnostics remain backlog. |
+| `pytest` | pytest | Core mapping now includes Python CLI and pytest package presence; project-local pytest discovery remains backlog. |
+| `rails` | Ruby on Rails | Core mapping now includes Ruby CLI, Rails gem, and localhost bind; project-local Rails diagnostics remain backlog. |
 | `react` | React | Core catalog mapping exists for Node.js and npm; framework-specific diagnostics remain backlog. |
-| `react-native` | React Native | UI item exists, but Core technology mapping is not defined. |
-| `rust` | Rust | Core mapping and Rust CLI check exist; Cargo/toolchain diagnostics remain backlog. |
+| `react-native` | React Native | Core mapping now exists for Node.js, npm, Android SDK, ADB, and localhost bind; React Native CLI/project diagnostics remain backlog. |
+| `rust` | Rust | Core mapping now includes Rust CLI and Cargo CLI; deeper rustup/toolchain diagnostics remain backlog. |
 | `ssms` | SQL Server Management Studio | Core mapping exists and reuses the SSMS file detection check. |
-| `swift` | Swift | UI item exists, but Core technology mapping is not defined. |
+| `swift` | Swift | Core mapping now includes a Swift CLI first-pass check; Windows Swift SDK/project diagnostics remain backlog. |
 | `tailwindcss` | Tailwind CSS | Core catalog mapping exists for Node.js and npm; CSS/tooling-specific diagnostics remain backlog. |
 | `vue` | Vue | Core catalog exists; remaining work is to decide whether Vite/npm checks are enough for MVP Vue diagnostics. |
 | `windows-terminal` | Windows Terminal | Core mapping and CLI check exist; profile/settings diagnostics remain backlog. |
