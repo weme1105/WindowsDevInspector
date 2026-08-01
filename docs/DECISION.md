@@ -11,6 +11,10 @@
 | DEC-005 | Protect registry rollback backups with DPAPI | Accepted | 2026-07-29 |
 | DEC-006 | Use explicit command-output decoding for Windows CLI checks | Accepted | 2026-07-29 |
 | DEC-007 | Keep App orchestration in testable App-layer services | Accepted | 2026-07-29 |
+| DEC-008 | Use `D:\Note` as the standard notes directory | Accepted | 2026-07-31 |
+| DEC-009 | Use `mvp` as the integration branch before `main` | Accepted | 2026-07-31 |
+| DEC-010 | Use explicit technology selection instead of independent role selection | Accepted | 2026-07-31 |
+| DEC-011 | Keep Phase 4 package planning read-only until install plans are approved | Accepted | 2026-07-31 |
 
 ---
 
@@ -194,7 +198,7 @@ Initial remediation is limited to:
 
 - Create `D:\Source`.
 - Create `D:\Projects`.
-- Create `D:\GoNote`.
+- Create `D:\Note`.
 - Enable Long Paths.
 - Enable Developer Mode.
 
@@ -393,3 +397,195 @@ Small App-layer services provide immediate testability while preserving the curr
 
 - [ ] Add a WPF smoke-test checklist or UI automation strategy.
 - [ ] Continue moving UI state into ViewModels when behavior stabilizes.
+
+---
+
+## DEC-008: Use `D:\Note` as the Standard Notes Directory
+
+### Status
+
+Accepted
+
+### Date
+
+2026-07-31
+
+### Context
+
+The product direction was clarified to use the shorter standard directory name `D:\Note` for learning notes and diagnostics.
+
+### Decision
+
+Use `D:\Note` for the common notes directory check and approved directory remediation.
+
+The related check ID and remediation ID are:
+
+- Check ID: `common.directory-note`
+- Remediation ID: `create-note-directory`
+
+### Consequences
+
+#### Positive
+
+- Directory naming is shorter and easier to explain.
+- Check catalog, remediation whitelist, and setup documentation use one consistent path.
+
+#### Negative
+
+- Existing local notes in any older personal directory are not automatically migrated.
+
+### Impacted Areas
+
+- Core check catalog
+- Windows checks
+- Remediation catalog
+- Documentation
+
+---
+
+## DEC-009: Use `mvp` as the Integration Branch Before `main`
+
+### Status
+
+Accepted
+
+### Date
+
+2026-07-31
+
+### Context
+
+The repository now has `main`, `mvp`, and feature branches. The project needs a predictable flow that keeps `main` stable while allowing MVP work to be integrated and tested before promotion.
+
+### Decision
+
+Use this branch model:
+
+```text
+main = stable validated baseline
+mvp = MVP integration and validation branch
+feature/<task-name> = focused development branch
+```
+
+Feature work should branch from the latest `mvp` and open PRs back into `mvp`.
+
+After MVP validation is complete, open a separate PR from `mvp` into `main`.
+
+### Rationale
+
+This keeps `main` reserved for validated states while letting the MVP branch collect small reviewed slices.
+
+### Consequences
+
+#### Positive
+
+- `main` remains stable.
+- MVP validation can happen before promotion.
+- Feature PR targets are consistent.
+
+#### Negative
+
+- Work must be kept synchronized with `mvp`.
+- PR base branches need to be checked before creation.
+
+### Follow-up Actions
+
+- [ ] Keep draft feature PRs targeted at `mvp` unless the task is a hotfix for `main`.
+- [ ] Promote `mvp` to `main` only after build, tests, and manual MVP validation pass.
+
+---
+
+## DEC-010: Use Explicit Technology Selection Instead of Independent Role Selection
+
+### Status
+
+Accepted
+
+### Date
+
+2026-07-31
+
+### Context
+
+Role labels such as Backend, Frontend, DevOps, or QA are too broad for environment diagnostics. A backend developer may only need C# and .NET checks, while a broad Backend role could imply Go, Python, Java, Docker, Redis, and other tools that are irrelevant to that user.
+
+Automatically adding checks from selected roles would create noisy results and force users to remove technologies they never asked to inspect.
+
+### Decision
+
+Remove independent role selection as a product concept.
+
+Technology selection is the source of truth for technology-driven diagnostics. Role-like labels may remain only as browsing groups, filters, or display categories. Selecting a group label must not implicitly select every technology in that group.
+
+Common baseline checks still run even when no technology is selected.
+
+### Consequences
+
+#### Positive
+
+- Scans reflect explicit user intent.
+- Result noise is lower.
+- Check catalog behavior remains easier to reason about and test.
+
+#### Negative
+
+- First-time users need a clear grouped technology picker.
+- Future selection persistence must keep using explicit technology IDs and avoid reintroducing broad implicit role presets.
+
+### Impacted Areas
+
+- Product spec
+- Environment selection documentation
+- Future UI selection model
+- Technology selection config persistence
+
+---
+
+## DEC-011: Keep Phase 4 Package Planning Read-Only Until Install Plans Are Approved
+
+### Status
+
+Accepted
+
+### Date
+
+2026-07-31
+
+### Context
+
+Phase 4 introduces tool installation planning for packages such as PowerShell 7, pnpm, Azure CLI, kubectl, and Terraform. Installing packages can modify Program Files, PATH, shims, services, and user or machine configuration.
+
+### Decision
+
+The first Phase 4 slice only checks whether known winget package IDs are available from configured sources.
+
+The app may run read-only commands such as:
+
+```text
+winget show --id <knownPackageId> --exact --accept-source-agreements
+```
+
+It must not install packages, accept arbitrary package IDs from the UI, or generate remediation plans for package installation until an approved installation plan schema and safety model exist.
+
+The app should not require a tool to be on the newest available package version. If a user already has an older working version, the scan may show that version as informational context, but it should not force installation or upgrade unless the user explicitly chooses that future action.
+
+### Consequences
+
+#### Positive
+
+- Users can see whether planned package IDs are resolvable before any installation feature exists.
+- Package checks stay auditable and non-mutating.
+- Older installed tools can remain acceptable when they are still usable for the selected workflow.
+- Future install automation has a clear design gate.
+
+#### Negative
+
+- Missing packages still require manual installation outside the app.
+- winget source availability depends on the user's local winget configuration and network state.
+
+### Impacted Areas
+
+- Windows checks
+- Check catalog
+- Future remediation design
+- Security

@@ -16,6 +16,7 @@ public sealed class DirectoryRemediationExecutorTests
 
         Assert.True(result.Succeeded);
         Assert.False(result.Skipped);
+        Assert.NotNull(result.BackupJson);
         Assert.Contains("D:\\Source", fileSystem.CreatedDirectories);
     }
 
@@ -30,6 +31,7 @@ public sealed class DirectoryRemediationExecutorTests
             CancellationToken.None);
 
         Assert.True(result.Succeeded);
+        Assert.NotNull(result.BackupJson);
         Assert.Empty(fileSystem.CreatedDirectories);
     }
 
@@ -77,6 +79,16 @@ public sealed class DirectoryRemediationExecutorTests
         {
             CreatedDirectories.Add(path);
             existingDirectories.Add(path);
+        }
+
+        public bool IsDirectoryEmpty(string path)
+        {
+            return true;
+        }
+
+        public void DeleteDirectory(string path)
+        {
+            existingDirectories.Remove(path);
         }
     }
 }

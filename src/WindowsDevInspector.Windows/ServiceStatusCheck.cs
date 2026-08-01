@@ -7,7 +7,12 @@ public sealed class ServiceStatusCheck(
     string category,
     string name,
     string serviceName,
-    IServiceReader serviceReader) : IEnvironmentCheck
+    IServiceReader serviceReader,
+    string? expectedStatus = null,
+    CheckSeverity severityWhenUnexpected = CheckSeverity.Info,
+    string? expectedValue = null,
+    string? missingImpact = null,
+    string? availableImpact = null) : IEnvironmentCheck
 {
     public string Id => id;
 
@@ -16,18 +21,20 @@ public sealed class ServiceStatusCheck(
         cancellationToken.ThrowIfCancellationRequested();
 
         ServiceReadResult result = serviceReader.ReadService(serviceName);
+        bool expectedStatusMatched = expectedStatus is null ||
+            string.Equals(result.Status, expectedStatus, StringComparison.OrdinalIgnoreCase);
 
         return Task.FromResult(new CheckResult
         {
             Id = id,
             Category = category,
             Name = name,
-            Severity = result.Exists ? CheckSeverity.Pass : CheckSeverity.Info,
+            Severity = result.Exists && expectedStatusMatched ? CheckSeverity.Pass : severityWhenUnexpected,
             CurrentValue = result.Exists ? result.Status ?? "Unknown" : result.ErrorMessage ?? "Not found",
-            ExpectedValue = serviceName,
-            Impact = result.Exists
-                ? "The Windows service exists and can be inspected."
-                : "The Windows service was not found. Related local development networking may be unavailable.",
+            ExpectedValue = expectedValue ?? (expectedStatus is null ? serviceName : $"{serviceName} service status: {expectedStatus}"),
+            Impact = result.Exists && expectedStatusMatched
+                ? availableImpact ?? "The Windows service exists and can be inspected."
+                : missingImpact ?? "The Windows service was not found or is not in the expected state. Related local development networking may be unavailable.",
             CanFix = false,
             Risk = RiskLevel.None
         });

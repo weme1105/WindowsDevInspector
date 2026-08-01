@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using WindowsDevInspector.Remediation;
@@ -13,9 +14,31 @@ public sealed class RemediationCoordinator
         WriteIndented = true
     };
 
-    private readonly DirectoryRemediationExecutor directoryRemediationExecutor = new(
-        BuiltInRemediationCatalog.CreateWhitelist(),
-        new SystemRemediationFileSystem());
+    private readonly DirectoryRemediationExecutor directoryRemediationExecutor;
+    private readonly IWorkerProcessRunner workerProcessRunner;
+    private readonly string? workerPathOverride;
+    private readonly string? workDirectoryOverride;
+    private readonly BackupFileService backupFileService = new(
+        new DpapiBackupProtector(),
+        MachineFingerprint.CreateFromMacAddresses());
+
+    public RemediationCoordinator()
+        : this(new WorkerProcessRunner(), workerPathOverride: null, workDirectoryOverride: null)
+    {
+    }
+
+    public RemediationCoordinator(
+        IWorkerProcessRunner workerProcessRunner,
+        string? workerPathOverride = null,
+        string? workDirectoryOverride = null)
+    {
+        this.workerProcessRunner = workerProcessRunner;
+        this.workerPathOverride = workerPathOverride;
+        this.workDirectoryOverride = workDirectoryOverride;
+        directoryRemediationExecutor = new DirectoryRemediationExecutor(
+            BuiltInRemediationCatalog.CreateWhitelist(),
+            new SystemRemediationFileSystem());
+    }
 
     public async Task<IReadOnlyList<RemediationExecutionResult>> ExecuteLocalRemediationsAsync(
         IEnumerable<string> remediationIds,
@@ -25,10 +48,35 @@ public sealed class RemediationCoordinator
 
         foreach (string remediationId in remediationIds)
         {
-            executionResults.Add(await directoryRemediationExecutor.ExecuteAsync(remediationId, cancellationToken));
+            RemediationExecutionResult result = await directoryRemediationExecutor.ExecuteAsync(remediationId, cancellationToken);
+            executionResults.Add(WriteBackupIfAvailable($"local-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}", result));
         }
 
         return executionResults;
+    }
+
+    public async Task<WorkerExecutionResult> ExecuteRollbackAsync(string backupPath)
+    {
+        try
+        {
+            DirectoryBackup directoryBackup = backupFileService.ReadEncryptedDirectoryBackup(backupPath);
+            DirectoryRollbackExecutor rollbackExecutor = new(new SystemRemediationFileSystem());
+            RemediationExecutionResult rollbackResult = await rollbackExecutor.RollbackAsync(
+                directoryBackup,
+                CancellationToken.None);
+
+            return new WorkerExecutionResult
+            {
+                PlanId = "rollback",
+                Succeeded = rollbackResult.Succeeded,
+                Errors = [],
+                Results = [rollbackResult]
+            };
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or FormatException or InvalidOperationException or System.Security.Cryptography.CryptographicException)
+        {
+            return await ExecuteElevatedRollbackAsync(backupPath);
+        }
     }
 
     public Task<WorkerExecutionResult> ExecuteElevatedRemediationAsync(
@@ -116,23 +164,27 @@ public sealed class RemediationCoordinator
             .ToArray();
     }
 
-    private static async Task<WorkerExecutionResult> RunWorkerAsync(
+    private async Task<WorkerExecutionResult> RunWorkerAsync(
         ProcessStartInfo startInfo,
         string resultPath,
         string fallbackPlanId,
         string missingResultMessage)
     {
-        using Process? process = Process.Start(startInfo);
-        if (process is null)
+        int exitCode;
+        try
         {
-            throw new OperationCanceledException("ElevatedWorker did not start.");
+            exitCode = await workerProcessRunner.RunAsync(startInfo);
         }
-
-        await process.WaitForExitAsync();
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
+        {
+            throw new OperationCanceledException("UAC was canceled.", ex);
+        }
 
         if (!File.Exists(resultPath))
         {
-            throw new IOException($"{missingResultMessage} Exit code: {process.ExitCode}");
+            return WorkerExecutionResult.Failed(
+                fallbackPlanId,
+                [$"{missingResultMessage} Exit code: {exitCode}"]);
         }
 
         string resultJson = await File.ReadAllTextAsync(resultPath);
@@ -140,21 +192,45 @@ public sealed class RemediationCoordinator
             ?? WorkerExecutionResult.Failed(fallbackPlanId, ["ElevatedWorker returned invalid JSON."]);
     }
 
-    private static string GetBackupDirectory()
+    private RemediationExecutionResult WriteBackupIfAvailable(
+        string planId,
+        RemediationExecutionResult executionResult)
+    {
+        if (!executionResult.Succeeded || string.IsNullOrWhiteSpace(executionResult.BackupJson))
+        {
+            return executionResult;
+        }
+
+        string backupDirectory = GetBackupDirectory();
+        Directory.CreateDirectory(backupDirectory);
+
+        string safeRemediationId = executionResult.RemediationId.Replace(":", "-", StringComparison.Ordinal);
+        string backupPath = Path.Combine(backupDirectory, $"{planId}.{safeRemediationId}.backup.json");
+        backupFileService.WriteEncryptedBackup(backupPath, executionResult.BackupJson);
+
+        return executionResult.WithBackupPath(backupPath);
+    }
+
+    private string GetBackupDirectory()
     {
         return Path.Combine(GetRemediationWorkDirectory(), "Backups");
     }
 
-    private static string GetRemediationWorkDirectory()
+    private string GetRemediationWorkDirectory()
     {
-        return Path.Combine(
+        return workDirectoryOverride ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "WindowsDevInspector",
             "Remediation");
     }
 
-    private static string ResolveElevatedWorkerPath()
+    private string ResolveElevatedWorkerPath()
     {
+        if (workerPathOverride is not null)
+        {
+            return workerPathOverride;
+        }
+
         string outputPath = Path.Combine(AppContext.BaseDirectory, "WindowsDevInspector.ElevatedWorker.exe");
         if (File.Exists(outputPath))
         {

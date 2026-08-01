@@ -17,6 +17,7 @@ public sealed class DirectoryExistsCheck(
         cancellationToken.ThrowIfCancellationRequested();
 
         bool exists = fileSystem.DirectoryExists(path);
+        bool canFix = !exists && remediationId is not null;
 
         CheckResult result = new()
         {
@@ -29,11 +30,11 @@ public sealed class DirectoryExistsCheck(
             Impact = exists
                 ? "The expected development directory is available."
                 : "The expected development directory is missing and may break repository or workspace conventions.",
-            CanFix = !exists && remediationId is not null,
-            Risk = !exists && remediationId is not null ? RiskLevel.Low : RiskLevel.None,
+            CanFix = canFix,
+            Risk = canFix ? RiskLevel.Low : RiskLevel.None,
             RequiresElevation = false,
             RequiresRestart = false,
-            SupportsRollback = !exists && remediationId is not null,
+            SupportsRollback = canFix,
             RemediationId = exists ? null : remediationId
         };
 

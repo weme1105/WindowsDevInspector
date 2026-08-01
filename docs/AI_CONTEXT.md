@@ -20,6 +20,8 @@
 - Process execution with timeout and output decoding.
 - File system checks and approved directory creation.
 - Environment variable inspection for PATH diagnostics.
+- Read-only developer tooling checks for NuGet sources, Visual Studio Build Tools, common browsers, Android SDK paths, and .NET MAUI workloads.
+- Read-only WSL and Docker diagnostics with explicit status/version/distribution/engine/service summaries.
 
 ### Testing
 
@@ -85,6 +87,7 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - Do not automatically delete unknown PATH entries.
 - Do not modify registry values without backup.
 - All remediation must use approved remediation IDs.
+- Automatic encrypted backup and rollback apply to all currently approved remediation IDs. Registry DWORD rollback goes through `ElevatedWorker`; directory rollback is handled in App-layer remediation code and deletes only tool-created directories that are still empty.
 
 ## Build Commands
 
@@ -122,6 +125,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.App/RemediationCoordinator.cs`
 - `src/WindowsDevInspector.App/ScanReportExporter.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`
+- `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`
 - `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckResultSorter.cs`
@@ -134,6 +138,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`
 - `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`
 - `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`
+- `tests/WindowsDevInspector.App.Tests/TechnologySelectionToggleTests.cs`
 
 ## Important Files
 
@@ -141,7 +146,11 @@ No separate lint or format command is currently documented. Build enforces code 
 - `README.md`: user-facing project overview.
 - `docs/PROJECT_SPEC.md`: product and architecture specification.
 - `docs/CHECK_CATALOG.md`: working check inventory.
-- `docs/ENVIRONMENT_PROFILES.md`: technology and role catalog source.
+- `docs/ENVIRONMENT_PROFILES.md`: technology catalog and grouping source.
+- `docs/MVP_TECHNOLOGY_SCOPE.md`: selected first-version MVP technology list and priority backlog.
+- `docs/PRIVACY.md`: MVP privacy and local-data handling statement.
+- `docs/RELEASE_NOTES.md`: MVP release notes and known limitations.
+- `docs/DEMO_SCREENSHOTS.md`: screenshot capture plan and safety checklist.
 - `docs/ROADMAP.md`: phase progress.
 - `docs/CODEX_DEVELOPMENT_SETUP.md`: local Codex and Windows setup guidance.
 
@@ -154,7 +163,17 @@ No separate lint or format command is currently documented. Build enforces code 
 - `wsl --status` output may be UTF-16LE without BOM; command output decoding must handle raw bytes.
 - `WindowsDevInspector.App` must not directly mutate registry, PATH, Windows features, or install software.
 - Elevated changes must stay inside `WindowsDevInspector.ElevatedWorker`.
-- Current known validation count is 83 passing tests after App-layer service tests were added.
+- `EnvironmentScanService` runs executable checks with bounded concurrency. The WPF UI exposes a scan concurrency dropdown from 1 through `Environment.ProcessorCount`; the default leaves one processor available.
+- PowerShell checks should not compare against the latest version. `desktop.powershell` checks Windows PowerShell availability, and `common.powershell7` checks `pwsh` availability; version output is informational current value only.
+- Chocolatey is represented by `chocolatey` -> `common.chocolatey`, implemented with `choco --version`. Missing Chocolatey should be Info, not Warning.
+- NuGet source diagnostics must redact credentials, tokens, passwords, API keys, and credential-bearing URLs before putting command output into `CheckResult`.
+- Visual Studio Build Tools diagnostics use `vswhere.exe` read-only detection and must not invoke VS Installer repair or installation behavior.
+- Browser availability diagnostics must not launch browsers or inspect user profiles, cookies, or browser data.
+- Android SDK diagnostics may inspect `ANDROID_HOME`, `ANDROID_SDK_ROOT`, common SDK paths, and SDK tool file presence; they must not modify environment variables.
+- .NET MAUI diagnostics use `dotnet workload list` read-only output and must not install workloads or modify dotnet configuration.
+- WSL diagnostics use `wsl --status`, `wsl --version`, and `wsl --list --verbose` through `ICommandRunner`; these commands must remain read-only and should not install distributions or modify WSL configuration.
+- Docker diagnostics use `docker --version`, `docker info`, and read-only Windows service status checks; they must not start Docker Desktop, change services, or modify networking.
+- Current known validation count is 174 passing tests after MVP WSL/Docker diagnostics were clarified.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
@@ -172,5 +191,9 @@ No separate lint or format command is currently documented. Build enforces code 
 - Important decisions: `docs/DECISION.md`.
 - Detailed product spec: `docs/PROJECT_SPEC.md`.
 - Check inventory: `docs/CHECK_CATALOG.md`.
-- Environment profile catalog: `docs/ENVIRONMENT_PROFILES.md`.
+- Technology catalog and grouping source: `docs/ENVIRONMENT_PROFILES.md`.
+- MVP technology scope: `docs/MVP_TECHNOLOGY_SCOPE.md`.
+- Privacy statement: `docs/PRIVACY.md`.
+- Release notes: `docs/RELEASE_NOTES.md`.
+- Demo screenshot plan: `docs/DEMO_SCREENSHOTS.md`.
 - Roadmap: `docs/ROADMAP.md`.

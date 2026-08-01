@@ -6,7 +6,7 @@ WindowsDevInspector
 
 ## Purpose
 
-WindowsDevInspector is a Windows desktop application for inspecting whether a developer workstation is ready for selected roles and technology stacks.
+WindowsDevInspector is a Windows desktop application for inspecting whether a developer workstation is ready for selected technology stacks.
 
 The product explains what is installed, missing, risky, or ready to use. It prioritizes read-only diagnostics first, then explicit and auditable remediation through a separate elevated worker.
 
@@ -38,6 +38,7 @@ Windows developer workstation diagnostics and safe local environment remediation
 - DPAPI-protected backup files.
 - Backup browser and elevated rollback flow.
 - JSON scan report export.
+- MVP privacy statement, release notes, and demo screenshot capture plan.
 
 ## System Scope
 
@@ -53,8 +54,9 @@ Out of scope for the current implementation:
 - Arbitrary registry editing.
 - Disabling Windows security features.
 - Broad package installation automation.
-- External profile plugin loading.
+- External technology selection loading.
 - Installer, signing, and update distribution.
+- Runtime telemetry or remote report upload.
 
 ## High-Level Architecture
 
@@ -93,9 +95,9 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, scoring, App-layer service extraction, and App service test coverage slices.
+The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
-There is an uncommitted UI polish change that moves report export to the result header, adds a "hide PASS results" toggle, and constrains the selected-fix button width. After that is reviewed and committed, the next development phase should focus on WPF smoke-test coverage and Phase 4/5 diagnostic expansion.
+The next development phase should focus on approved installation-plan design, installer/signing decisions, and eventual WPF automation or ViewModel extraction.
 
 ## Known Constraints
 

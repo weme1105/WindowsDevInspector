@@ -11,4 +11,14 @@ public sealed class SystemRemediationFileSystem : IRemediationFileSystem
     {
         Directory.CreateDirectory(path);
     }
+
+    public bool IsDirectoryEmpty(string path)
+    {
+        return !Directory.EnumerateFileSystemEntries(path).Any();
+    }
+
+    public void DeleteDirectory(string path)
+    {
+        Directory.Delete(path);
+    }
 }

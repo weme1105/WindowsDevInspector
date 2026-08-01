@@ -30,6 +30,22 @@ public sealed class BackupFileService(IBackupProtector protector, string machine
 
     public RegistryDwordBackup ReadEncryptedRegistryBackup(string path)
     {
+        string backupJson = ReadEncryptedBackupJson(path);
+
+        return JsonSerializer.Deserialize<RegistryDwordBackup>(backupJson, JsonOptions)
+            ?? throw new InvalidOperationException("Decrypted backup content is not a valid registry backup.");
+    }
+
+    public DirectoryBackup ReadEncryptedDirectoryBackup(string path)
+    {
+        string backupJson = ReadEncryptedBackupJson(path);
+
+        return JsonSerializer.Deserialize<DirectoryBackup>(backupJson, JsonOptions)
+            ?? throw new InvalidOperationException("Decrypted backup content is not a valid directory backup.");
+    }
+
+    private string ReadEncryptedBackupJson(string path)
+    {
         string envelopeJson = File.ReadAllText(path, Encoding.UTF8);
         EncryptedBackupEnvelope envelope = JsonSerializer.Deserialize<EncryptedBackupEnvelope>(envelopeJson, JsonOptions)
             ?? throw new InvalidOperationException("Backup file is not a valid encrypted backup envelope.");
@@ -51,9 +67,6 @@ public sealed class BackupFileService(IBackupProtector protector, string machine
 
         byte[] ciphertext = Convert.FromBase64String(envelope.CipherText);
         byte[] plaintext = protector.Unprotect(ciphertext);
-        string backupJson = Encoding.UTF8.GetString(plaintext);
-
-        return JsonSerializer.Deserialize<RegistryDwordBackup>(backupJson, JsonOptions)
-            ?? throw new InvalidOperationException("Decrypted backup content is not a valid registry backup.");
+        return Encoding.UTF8.GetString(plaintext);
     }
 }

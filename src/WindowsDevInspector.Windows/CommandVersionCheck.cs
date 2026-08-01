@@ -9,7 +9,8 @@ public sealed class CommandVersionCheck(
     string fileName,
     string arguments,
     ICommandRunner commandRunner,
-    TimeSpan? timeout = null) : IEnvironmentCheck
+    TimeSpan? timeout = null,
+    CheckSeverity failureSeverity = CheckSeverity.Warning) : IEnvironmentCheck
 {
     private readonly TimeSpan timeout = timeout ?? TimeSpan.FromSeconds(5);
 
@@ -25,7 +26,7 @@ public sealed class CommandVersionCheck(
             Id = id,
             Category = category,
             Name = name,
-            Severity = passed ? CheckSeverity.Pass : CheckSeverity.Warning,
+            Severity = passed ? CheckSeverity.Pass : failureSeverity,
             CurrentValue = passed ? FirstMeaningfulLine(runResult) : FailureMessage(runResult),
             ExpectedValue = $"{fileName} {arguments}".Trim(),
             Impact = passed

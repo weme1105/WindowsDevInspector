@@ -1,10 +1,12 @@
+using System.ComponentModel;
 using WindowsDevInspector.Core;
 
 namespace WindowsDevInspector.App;
 
-public sealed class CheckResultRow(CheckResult result)
+public sealed class CheckResultRow(CheckResult result) : INotifyPropertyChanged
 {
     private const int MaxCellLength = 160;
+    private bool isSelectedForFix;
 
     public string Id { get; } = result.Id;
 
@@ -28,11 +30,30 @@ public sealed class CheckResultRow(CheckResult result)
 
     public bool RequiresElevation { get; } = result.RequiresElevation;
 
+    public string RequiresElevationText { get; } = result.RequiresElevation ? "需要 UAC / 系統管理員權限" : "不需要提升權限";
+
     public bool RequiresRestart { get; } = result.RequiresRestart;
+
+    public string RequiresRestartText { get; } = result.RequiresRestart ? "可能需要重開機" : "不需要重開機";
 
     public bool SupportsRollback { get; } = result.SupportsRollback;
 
+    public string SupportsRollbackText { get; } = result.SupportsRollback ? "支援 Rollback" : "不支援 Rollback";
+
     public string? RemediationId { get; } = result.RemediationId;
+
+    public string RemediationText { get; } = result.CanFix && result.RemediationId is not null
+        ? result.RemediationId
+        : "未提供自動修正";
+
+    public string FixabilityText { get; } =
+        $"可自動修正：{(result.CanFix ? "是" : "否")} | 風險：{result.Risk}";
+
+    public string RemediationContextText { get; } = string.Join(" | ", [
+        result.RequiresElevation ? "需要 UAC / 系統管理員權限" : "不需要提升權限",
+        result.RequiresRestart ? "可能需要重開機" : "不需要重開機",
+        result.SupportsRollback ? "支援 Rollback" : "不支援 Rollback"
+    ]);
 
     public bool IsFixSelectable => CanFixValue
         && RemediationId is not null
@@ -45,9 +66,25 @@ public sealed class CheckResultRow(CheckResult result)
     public bool IsLowRiskSupportedFix => IsFixSelectable
         && Risk == RiskLevel.Low;
 
-    public bool IsSelectedForFix { get; set; }
+    public bool IsSelectedForFix
+    {
+        get => isSelectedForFix;
+        set
+        {
+            bool normalizedValue = IsFixSelectable && value;
+            if (isSelectedForFix == normalizedValue)
+            {
+                return;
+            }
+
+            isSelectedForFix = normalizedValue;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForFix)));
+        }
+    }
 
     public string Impact { get; } = result.Impact;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public CheckResultReportRow ToReportRow()
     {

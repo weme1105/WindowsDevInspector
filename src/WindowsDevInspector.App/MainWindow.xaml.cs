@@ -23,6 +23,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         TechnologyGroups = new ObservableCollection<TechnologyGroup>(TechnologyCatalog.CreateDefaultGroups());
+        AttachTechnologySelectionChangeHandlers();
         Results = new ObservableCollection<CheckResultRow>
         {
             new(new CheckResult
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
             ScanStatusTextBlock.Text = $"已載入 {loadedTechnologyCount} 個儲存選項";
         }
 
+        RefreshTechnologySelectionToggleButton();
         ResultsView.Filter = ShouldShowResult;
     }
 
@@ -54,6 +56,10 @@ public partial class MainWindow : Window
     public ObservableCollection<CheckResultRow> Results { get; }
 
     public ObservableCollection<BackupFileRow> BackupFiles { get; } = [];
+
+    public ObservableCollection<int> ScanConcurrencyOptions { get; } = new(ScanConcurrencySettings.CreateOptions());
+
+    public int SelectedScanConcurrency { get; set; } = ScanConcurrencySettings.DefaultMaxConcurrentChecks;
 
     private ICollectionView ResultsView => CollectionViewSource.GetDefaultView(Results);
 
@@ -104,11 +110,44 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ToggleTechnologySelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        TechnologySelectionToggleResult result = TechnologySelectionToggle.Toggle(TechnologyGroups);
+        RefreshTechnologySelectionToggleButton();
+
+        ScanStatusTextBlock.Text = result.Action == TechnologySelectionToggleAction.SelectedAll
+            ? $"已勾選全部 {result.ChangedCount} 個技術；按「儲存選項」可保留此選擇"
+            : $"已取消全部 {result.ChangedCount} 個技術勾選；按「儲存選項」可保留此選擇";
+    }
+
+    private void RefreshTechnologySelectionToggleButton()
+    {
+        ToggleTechnologySelectionButton.Content = TechnologySelectionToggle.GetButtonLabel(TechnologyGroups);
+    }
+
+    private void AttachTechnologySelectionChangeHandlers()
+    {
+        foreach (TechnologyItem technology in TechnologyGroups.SelectMany(group => group.Technologies))
+        {
+            technology.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(TechnologyItem.IsSelected))
+                {
+                    RefreshTechnologySelectionToggleButton();
+                }
+            };
+        }
+    }
+
     private async Task RunScanAsync()
     {
         string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
-        EnvironmentScanResult scanResult = await scanService.RunScanAsync(selectedTechnologyIds, CancellationToken.None);
+        int scanConcurrency = ScanConcurrencySettings.Clamp(SelectedScanConcurrency);
+        EnvironmentScanResult scanResult = await scanService.RunScanAsync(
+            selectedTechnologyIds,
+            CancellationToken.None,
+            scanConcurrency);
 
         Results.Clear();
         foreach (CheckResult result in scanResult.Results)
@@ -118,22 +157,20 @@ public partial class MainWindow : Window
 
         ScoreTextBlock.Text = FormatScore(scanResult.Score);
 
-        ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查";
+        ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查，併發數 {scanConcurrency}";
     }
-    private async void FixAllButton_Click(object sender, RoutedEventArgs e)
+    private void FixAllButton_Click(object sender, RoutedEventArgs e)
     {
-        CheckResultRow[] selectableRows = Results
-            .Where(result => result.IsFixSelectable && result.RemediationId is not null)
-            .ToArray();
+        int selectedCount = ResultFixSelection.SelectLowRiskSupportedFixes(Results);
 
-        await ExecuteFixesAsync(selectableRows, "沒有可執行的修正項目");
+        ScanStatusTextBlock.Text = selectedCount == 0
+            ? "沒有低風險且已支援的修正項目可勾選"
+            : $"已批次勾選 {selectedCount} 個低風險且已支援的修正項目";
     }
 
     private async void StartFixButton_Click(object sender, RoutedEventArgs e)
     {
-        CheckResultRow[] selectedRows = Results
-            .Where(result => result.IsSelectedForFix && result.RemediationId is not null)
-            .ToArray();
+        CheckResultRow[] selectedRows = ResultFixSelection.GetSelectedFixes(Results);
 
         await ExecuteFixesAsync(selectedRows, "尚未勾選可執行的修正");
     }
@@ -149,14 +186,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        StartFixButton.IsEnabled = false;
-        FixAllButton.IsEnabled = false;
-        RestoreLatestBackupButton.IsEnabled = false;
+        if (!ConfirmRollback(backupPath))
+        {
+            ScanStatusTextBlock.Text = "已取消還原，系統未變更";
+            return;
+        }
+
+        SetRemediationButtonsEnabled(false);
         ScanStatusTextBlock.Text = "還原中...";
 
         try
         {
-            WorkerExecutionResult rollbackResult = await remediationCoordinator.ExecuteElevatedRollbackAsync(backupPath);
+            WorkerExecutionResult rollbackResult = await remediationCoordinator.ExecuteRollbackAsync(backupPath);
             await RunScanAsync();
             RefreshBackupFiles();
 
@@ -174,9 +215,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            StartFixButton.IsEnabled = true;
-            FixAllButton.IsEnabled = true;
-            RestoreLatestBackupButton.IsEnabled = true;
+            SetRemediationButtonsEnabled(true);
         }
     }
 
@@ -214,9 +253,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        StartFixButton.IsEnabled = false;
-        FixAllButton.IsEnabled = false;
-        RestoreLatestBackupButton.IsEnabled = false;
+        if (!ConfirmRemediation(selectedRows))
+        {
+            ScanStatusTextBlock.Text = "已取消修正，系統未變更";
+            return;
+        }
+
+        SetRemediationButtonsEnabled(false);
         ScanStatusTextBlock.Text = "修正中...";
 
         try
@@ -269,9 +312,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            StartFixButton.IsEnabled = true;
-            FixAllButton.IsEnabled = true;
-            RestoreLatestBackupButton.IsEnabled = true;
+            SetRemediationButtonsEnabled(true);
         }
     }
 
@@ -285,6 +326,14 @@ public partial class MainWindow : Window
         }
 
         BackupComboBox.SelectedIndex = BackupFiles.Count > 0 ? 0 : -1;
+        RestoreLatestBackupButton.IsEnabled = BackupFiles.Count > 0;
+    }
+
+    private void SetRemediationButtonsEnabled(bool isEnabled)
+    {
+        StartFixButton.IsEnabled = isEnabled;
+        FixAllButton.IsEnabled = isEnabled;
+        RestoreLatestBackupButton.IsEnabled = isEnabled && BackupFiles.Count > 0;
     }
 
     private string[] GetSelectedTechnologyIds()
@@ -308,5 +357,49 @@ public partial class MainWindow : Window
         return item is not CheckResultRow result
             || HidePassResultsCheckBox.IsChecked != true
             || !result.Severity.Equals(CheckSeverity.Pass.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ConfirmRemediation(IReadOnlyList<CheckResultRow> selectedRows)
+    {
+        int elevatedCount = selectedRows.Count(row => row.RequiresElevation);
+        int restartCount = selectedRows.Count(row => row.RequiresRestart);
+        int rollbackCount = selectedRows.Count(row => row.SupportsRollback);
+
+        string message = string.Join(Environment.NewLine, [
+            $"即將執行 {selectedRows.Count} 個已勾選修正項目。",
+            $"需要 UAC / 系統管理員權限：{elevatedCount} 個。",
+            $"需要重開機：{restartCount} 個。",
+            $"支援 Rollback：{rollbackCount} 個。",
+            "Registry 修正會由 ElevatedWorker 建立備份後執行；本機資料夾修正僅建立白名單目錄。",
+            "所有修正都會先經過 remediation whitelist；不會執行任意 PowerShell、cmd 或未核准的 Registry/PATH/Windows Feature 變更。",
+            "執行後會重新掃描目前狀態。",
+            "",
+            "是否繼續？"
+        ]);
+
+        return MessageBox.Show(
+            message,
+            "確認開始修正",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) == MessageBoxResult.Yes;
+    }
+
+    private static bool ConfirmRollback(string backupPath)
+    {
+        string message = string.Join(Environment.NewLine, [
+            "即將以 ElevatedWorker 執行 Registry Rollback。",
+            $"備份檔：{backupPath}",
+            "此操作需要 UAC / 系統管理員權限，並會由 worker 驗證備份內容後才還原。",
+            "如果備份無法解密、格式不正確，或不是核准的 Registry 目標，worker 會拒絕還原。",
+            "還原後會重新掃描目前狀態。",
+            "",
+            "是否繼續？"
+        ]);
+
+        return MessageBox.Show(
+            message,
+            "確認還原備份",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) == MessageBoxResult.Yes;
     }
 }

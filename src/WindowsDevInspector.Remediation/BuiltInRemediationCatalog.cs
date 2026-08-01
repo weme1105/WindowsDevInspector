@@ -14,7 +14,7 @@ public static class BuiltInRemediationCatalog
         return [
             Directory("create-source-directory", "Create D:\\Source", "Creates the standard source repository directory.", false),
             Directory("create-projects-directory", "Create D:\\Projects", "Creates the standard experiments and generated outputs directory.", false),
-            Directory("create-gonote-directory", "Create D:\\GoNote", "Creates the standard learning notes and diagnostics directory.", false),
+            Directory("create-note-directory", "Create D:\\Note", "Creates the standard learning notes and diagnostics directory.", false),
             Registry("enable-long-paths", "Enable Windows long paths", "Enables long path support through the approved registry value."),
             Registry("enable-developer-mode", "Enable Developer Mode", "Enables Developer Mode through the approved registry value.")
         ];

@@ -115,13 +115,32 @@
                             Content="儲存選項"
                             Click="SaveOptionsButton_Click"
                             Margin="0,0,0,10" />
+                    <Button x:Name="ToggleTechnologySelectionButton"
+                            Content="勾選全部"
+                            Click="ToggleTechnologySelectionButton_Click"
+                            Margin="0,0,0,10" />
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="96" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="檢查併發數"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold" />
+                        <ComboBox x:Name="ScanConcurrencyComboBox"
+                                  Grid.Column="1"
+                                  ItemsSource="{Binding ScanConcurrencyOptions}"
+                                  SelectedItem="{Binding SelectedScanConcurrency, Mode=TwoWay}"
+                                  MinHeight="32"
+                                  HorizontalContentAlignment="Center" />
+                    </Grid>
                     <Button x:Name="StartScanButton"
                             Content="開始檢查"
                             Click="StartScanButton_Click"
                             Background="#2251A4"
                             BorderBrush="#2251A4"
                             Foreground="#FFFFFF" />
-                    <TextBlock Text="目前會先把已選技術轉成檢查結果；下一步會接上真實掃描器。"
+                    <TextBlock Text="可使用預設建議，或用勾選全部/取消勾選全部快速調整；分類標題只用來瀏覽。"
                                TextWrapping="Wrap"
                                Margin="0,12,0,0"
                                Foreground="#6C778B" />
@@ -258,6 +277,18 @@
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"
                                Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding FixabilityText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding RemediationContextText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding RemediationText, StringFormat=Remediation: {0}}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
                 </StackPanel>
             </Border>
 
@@ -270,7 +301,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="FixAllButton"
-                        Content="全部修正"
+                        Content="批次勾選"
                         Click="FixAllButton_Click" />
                 <ComboBox x:Name="BackupComboBox"
                           Grid.Column="1"

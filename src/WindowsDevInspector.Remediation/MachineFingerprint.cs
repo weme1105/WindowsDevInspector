@@ -2,7 +2,7 @@ using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WindowsDevInspector.ElevatedWorker;
+namespace WindowsDevInspector.Remediation;
 
 public static class MachineFingerprint
 {

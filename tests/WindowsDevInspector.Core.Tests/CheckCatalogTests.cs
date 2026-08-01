@@ -27,4 +27,51 @@ public sealed class CheckCatalogTests
         Assert.Contains(checks, check => check.Id == "frontend.angular-cli");
         Assert.Contains(checks, check => check.Id == "frontend.vite-cli");
     }
+
+    [Theory]
+    [InlineData("react")]
+    [InlineData("nextjs")]
+    [InlineData("tailwindcss")]
+    public void ResolveChecks_IncludesFrontendBacklogTechnologyMappings(string technologyId)
+    {
+        CheckCatalog catalog = BuiltInCheckCatalog.Create();
+
+        IReadOnlyList<CheckDefinition> checks = catalog.ResolveChecks([technologyId], includeCommonChecks: false);
+
+        Assert.Contains(checks, check => check.Id == "frontend.node-cli");
+        Assert.Contains(checks, check => check.Id == "frontend.npm-cli");
+    }
+
+    [Theory]
+    [InlineData("github-cli", "devops.github-cli")]
+    [InlineData("chocolatey", "common.chocolatey")]
+    [InlineData("google-cloud-cli", "devops.google-cloud-cli")]
+    [InlineData("windows-terminal", "desktop.windows-terminal")]
+    [InlineData("ssms", "database.ssms")]
+    [InlineData("dotnet-desktop-runtime", "desktop.dotnet-desktop-runtime")]
+    [InlineData("powershell", "desktop.powershell")]
+    [InlineData("flask", "backend.python-cli")]
+    [InlineData("pytest", "backend.python-cli")]
+    [InlineData("php", "backend.php-cli")]
+    [InlineData("rails", "backend.ruby-cli")]
+    [InlineData("rust", "backend.rust-cli")]
+    public void ResolveChecks_IncludesToolBacklogTechnologyMappings(string technologyId, string expectedCheckId)
+    {
+        CheckCatalog catalog = BuiltInCheckCatalog.Create();
+
+        IReadOnlyList<CheckDefinition> checks = catalog.ResolveChecks([technologyId], includeCommonChecks: false);
+
+        Assert.Contains(checks, check => check.Id == expectedCheckId);
+    }
+
+    [Fact]
+    public void ResolveChecks_PowerShell7DoesNotIncludePackagePlanning()
+    {
+        CheckCatalog catalog = BuiltInCheckCatalog.Create();
+
+        IReadOnlyList<CheckDefinition> checks = catalog.ResolveChecks(["powershell7"], includeCommonChecks: false);
+
+        CheckDefinition check = Assert.Single(checks);
+        Assert.Equal("common.powershell7", check.Id);
+    }
 }

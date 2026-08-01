@@ -49,6 +49,29 @@ public sealed class CommandVersionCheckTests
         Assert.Contains("cannot find", result.CurrentValue);
     }
 
+    [Fact]
+    public async Task RunAsync_UsesConfiguredFailureSeverityWhenCommandFails()
+    {
+        CommandVersionCheck check = new(
+            "common.chocolatey",
+            "Common",
+            "Chocolatey CLI",
+            "choco",
+            "--version",
+            new FakeCommandRunner(new CommandRunResult
+            {
+                FileName = "choco",
+                Arguments = "--version",
+                ErrorMessage = "The system cannot find the file specified."
+            }),
+            failureSeverity: CheckSeverity.Info);
+
+        CheckResult result = await check.RunAsync(CancellationToken.None);
+
+        Assert.Equal(CheckSeverity.Info, result.Severity);
+        Assert.Contains("cannot find", result.CurrentValue);
+    }
+
     private sealed class FakeCommandRunner(CommandRunResult result) : ICommandRunner
     {
         public Task<CommandRunResult> RunAsync(string fileName, string arguments, TimeSpan timeout, CancellationToken cancellationToken)

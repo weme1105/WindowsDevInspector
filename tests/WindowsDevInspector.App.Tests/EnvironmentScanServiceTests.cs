@@ -78,6 +78,30 @@ public sealed class EnvironmentScanServiceTests
         Assert.Equal(cancellationTokenSource.Token, executableCheck.CapturedToken);
     }
 
+    [Fact]
+    public async Task RunScanAsync_RunsExecutableChecksWithBoundedConcurrency()
+    {
+        CheckCatalog catalog = new(
+            [],
+            Enumerable
+                .Range(1, 12)
+                .Select(index => Check($"check.{index}", $"Check {index}", "Common"))
+                .ToArray());
+        ConcurrentTrackingEnvironmentCheck tracker = new();
+        EnvironmentScanService service = new(
+            catalog,
+            catalog.Checks.ToDictionary(
+                check => check.Id,
+                check => (IEnvironmentCheck)new DelayedEnvironmentCheck(check.Id, tracker),
+                StringComparer.OrdinalIgnoreCase));
+
+        EnvironmentScanResult result = await service.RunScanAsync([], CancellationToken.None, maxConcurrentChecks: 3);
+
+        Assert.Equal(12, result.Results.Count);
+        Assert.True(tracker.MaxConcurrentCount > 1);
+        Assert.True(tracker.MaxConcurrentCount <= 3);
+    }
+
     private static TechnologyDefinition Technology(string id, IReadOnlyCollection<string> checkIds)
     {
         return new TechnologyDefinition
@@ -139,6 +163,57 @@ public sealed class EnvironmentScanServiceTests
             CapturedToken = cancellationToken;
 
             return Task.FromResult(result);
+        }
+    }
+
+    private sealed class ConcurrentTrackingEnvironmentCheck
+    {
+        private int runningCount;
+        private int maxConcurrentCount;
+
+        public int MaxConcurrentCount => maxConcurrentCount;
+
+        public async Task RunAsync(CancellationToken cancellationToken)
+        {
+            int currentCount = Interlocked.Increment(ref runningCount);
+            UpdateMaxConcurrentCount(currentCount);
+
+            try
+            {
+                await Task.Delay(50, cancellationToken);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref runningCount);
+            }
+        }
+
+        private void UpdateMaxConcurrentCount(int currentCount)
+        {
+            int observedMax;
+
+            do
+            {
+                observedMax = maxConcurrentCount;
+
+                if (currentCount <= observedMax)
+                {
+                    return;
+                }
+            }
+            while (Interlocked.CompareExchange(ref maxConcurrentCount, currentCount, observedMax) != observedMax);
+        }
+    }
+
+    private sealed class DelayedEnvironmentCheck(string id, ConcurrentTrackingEnvironmentCheck tracker) : IEnvironmentCheck
+    {
+        public string Id => id;
+
+        public async Task<CheckResult> RunAsync(CancellationToken cancellationToken)
+        {
+            await tracker.RunAsync(cancellationToken);
+
+            return Result(id, CheckSeverity.Pass);
         }
     }
 }

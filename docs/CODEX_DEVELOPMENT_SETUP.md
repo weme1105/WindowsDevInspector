@@ -13,7 +13,7 @@ D:\Projects
 ├─ prototypes
 └─ outputs
 
-D:\GoNote
+D:\Note
 ├─ notes
 ├─ scripts
 └─ diagnostics
@@ -23,7 +23,7 @@ D:\GoNote
 
 - `D:\Source`：正式 Git Repository。
 - `D:\Projects`：暫存專案、實驗與輸出。
-- `D:\GoNote`：學習筆記、診斷腳本與個人工具。
+- `D:\Note`：學習筆記、診斷腳本與個人工具。
 
 WindowsDevInspector 應放在：
 
@@ -254,13 +254,13 @@ Create or normalize the .NET 10 WPF solution structure described in AGENTS.md.
 Do not implement all planned checks.
 
 Implement only the first vertical slice:
-1. Common profile selection.
-2. Read-only checks for D:\Source, D:\Projects, D:\GoNote.
+1. Common technology selection.
+2. Read-only checks for D:\Source, D:\Projects, D:\Note.
 3. Long Paths check.
 4. Developer Mode check.
 5. Result sorting with PASS items last.
 6. Hide selection checkbox for PASS items.
-7. Unit tests for sorting and profile filtering.
+7. Unit tests for sorting and technology selection filtering.
 
 Before editing, provide a concise implementation plan.
 After editing, run dotnet build and dotnet test.
@@ -285,8 +285,7 @@ Task 7: Backup
 Task 8: Rollback
 Task 9: PATH diagnostics
 Task 10: winget package installation
-Task 11: Profile plugin
-Task 12: GitHub Actions
+Task 11: GitHub Actions
 ```
 
 ## 13. GitHub 與 Codex
