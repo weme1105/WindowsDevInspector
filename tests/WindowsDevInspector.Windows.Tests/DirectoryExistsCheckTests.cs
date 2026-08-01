@@ -48,5 +48,10 @@ public sealed class DirectoryExistsCheckTests
         {
             return existingDirectories.Contains(path);
         }
+
+        public bool FileExists(string path)
+        {
+            return false;
+        }
     }
 }

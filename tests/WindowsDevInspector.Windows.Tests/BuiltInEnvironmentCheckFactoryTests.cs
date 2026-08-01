@@ -1,3 +1,5 @@
+using WindowsDevInspector.Core;
+
 namespace WindowsDevInspector.Windows.Tests;
 
 public sealed class BuiltInEnvironmentCheckFactoryTests
@@ -12,6 +14,8 @@ public sealed class BuiltInEnvironmentCheckFactoryTests
     [InlineData("backend.dotnet-sdk")]
     [InlineData("backend.dotnet-runtime")]
     [InlineData("backend.aspnet-runtime")]
+    [InlineData("backend.nuget-sources")]
+    [InlineData("backend.visualstudio-buildtools")]
     [InlineData("frontend.node-cli")]
     [InlineData("frontend.npm-cli")]
     [InlineData("frontend.npm-global-prefix")]
@@ -49,7 +53,10 @@ public sealed class BuiltInEnvironmentCheckFactoryTests
     [InlineData("database.ssms")]
     [InlineData("qa.postman")]
     [InlineData("qa.newman")]
+    [InlineData("qa.browser-availability")]
+    [InlineData("mobile.android-sdk")]
     [InlineData("mobile.adb")]
+    [InlineData("mobile.dotnet-maui")]
     [InlineData("desktop.visualstudio")]
     [InlineData("desktop.dotnet-desktop-runtime")]
     [InlineData("desktop.vscode")]
@@ -61,5 +68,20 @@ public sealed class BuiltInEnvironmentCheckFactoryTests
         IReadOnlyDictionary<string, IEnvironmentCheck> checks = BuiltInEnvironmentCheckFactory.CreateAll();
 
         Assert.Contains(checkId, checks.Keys);
+    }
+
+    [Fact]
+    public void CreateAll_IncludesExecutableCheckForEveryCatalogCheck()
+    {
+        CheckCatalog catalog = BuiltInCheckCatalog.Create();
+        IReadOnlyDictionary<string, IEnvironmentCheck> executableChecks = BuiltInEnvironmentCheckFactory.CreateAll();
+
+        string[] missingIds = catalog.Checks
+            .Select(check => check.Id)
+            .Where(checkId => !executableChecks.ContainsKey(checkId))
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Assert.Empty(missingIds);
     }
 }

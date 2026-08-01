@@ -6,4 +6,9 @@ public sealed class SystemFileSystem : IFileSystem
     {
         return Directory.Exists(path);
     }
+
+    public bool FileExists(string path)
+    {
+        return File.Exists(path);
+    }
 }

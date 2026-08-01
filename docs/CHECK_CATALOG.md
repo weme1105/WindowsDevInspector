@@ -96,8 +96,8 @@ If an installed tool is older than the winget source version, that should be rep
 | backend.dotnet-sdk | .NET SDK version | dotnet, csharp, aspnetcore | Backend | Warning | No | Use `dotnet --list-sdks`. |
 | backend.dotnet-runtime | .NET runtime version | dotnet, csharp, aspnetcore | Backend | Info | No | Use `dotnet --list-runtimes`. |
 | backend.aspnet-runtime | ASP.NET Core runtime | aspnetcore | Backend | Info | No | Implemented with `dotnet --list-runtimes`; detects `Microsoft.AspNetCore.App`. |
-| backend.nuget-sources | NuGet sources | dotnet, csharp, aspnetcore | Backend | Info | No | Must avoid logging credentials. |
-| backend.visualstudio-buildtools | Visual Studio / Build Tools | csharp, cpp, dotnet | Backend | Info | No | Shared with Desktop. |
+| backend.nuget-sources | NuGet sources | dotnet, csharp, aspnetcore | Backend | Info | No | Implemented with `dotnet nuget list source`; credentials, tokens, passwords, API keys, and credential-bearing URLs are redacted before display. |
+| backend.visualstudio-buildtools | Visual Studio / Build Tools | csharp, cpp, dotnet | Backend | Info | No | Implemented with read-only `vswhere.exe` detection for MSBuild-capable Visual Studio / Build Tools instances. |
 | backend.go-cli | Go CLI | go | Backend | Warning | No | Use `go version`. |
 | backend.go-env | Go environment | go | Backend | Info | No | Use `go env`; sanitize output if needed. |
 | backend.python-cli | Python CLI | python, django, fastapi, flask, pytest | Backend | Warning | No | Detect `py` and `python`. |
@@ -148,7 +148,7 @@ If an installed tool is older than the winget source version, that should be rep
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
 | qa.playwright | Playwright availability | playwright | QA | Info | No | Shared with frontend. |
-| qa.browser-availability | Browser availability | playwright, selenium, cypress, webdriverio | QA | Info | No | Detect common browsers. |
+| qa.browser-availability | Browser availability | playwright, selenium, cypress, webdriverio | QA | Info | No | Implemented with standard executable path checks for Edge, Chrome, and Firefox; does not launch browsers or inspect profiles/cookies. |
 | qa.selenium | Selenium tooling | selenium, webdriverio | QA | Info | No | First pass can be catalog Info only. |
 | qa.postman | Postman | postman, newman | QA | Info | No | Detect app or CLI. |
 | qa.newman | Newman CLI | newman, postman | QA | Info | No | Detect CLI. |
@@ -159,13 +159,13 @@ If an installed tool is older than the winget source version, that should be rep
 
 | Check ID | Name | Trigger technologies | Category | Missing severity | Can fix | Notes |
 |---|---|---|---|---|---:|---|
-| mobile.android-sdk | Android SDK | android-sdk, android-studio, flutter, react-native | Mobile | Info | No | Detect SDK path. |
+| mobile.android-sdk | Android SDK | android-sdk, android-studio, flutter, react-native | Mobile | Info | No | Implemented with `ANDROID_HOME`, `ANDROID_SDK_ROOT`, common SDK paths, and `platform-tools\adb.exe` presence checks; does not modify environment variables. |
 | mobile.adb | ADB CLI | adb, android-sdk, android-studio | Mobile | Info | No | Detect `adb version`. |
 | mobile.android-emulator | Android Emulator | android-emulator, android-studio | Mobile | Info | No | Detect emulator tool. |
 | mobile.gradle | Gradle | gradle, android-studio, kotlin, java | Mobile | Info | No | Detect `gradle` or wrapper later. |
 | mobile.flutter | Flutter CLI | flutter, dart | Mobile | Info | No | Detect `flutter --version`. |
 | mobile.react-native | React Native tooling | react-native, expo | Mobile | Info | No | Depends on Node.js checks. |
-| mobile.dotnet-maui | .NET MAUI workload | dotnet-maui, maui-check | Mobile | Info | No | Use `dotnet workload list`. |
+| mobile.dotnet-maui | .NET MAUI workload | dotnet-maui, maui-check | Mobile | Info | No | Implemented with read-only `dotnet workload list`; does not install workloads. |
 
 ## Desktop Checks
 

@@ -33,6 +33,11 @@ No active implementation task.
   - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Windows/WindowsVersionCheck.cs`, `src/WindowsDevInspector.Windows/ProcessorArchitectureCheck.cs`, `tests/WindowsDevInspector.Windows.Tests/WindowsVersionCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/ProcessorArchitectureCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`.
   - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
 
+- [x] Add executable checks for all current Core catalog check IDs.
+  - Completed: added read-only executable checks for NuGet sources, Visual Studio Build Tools, browser availability, Android SDK, and .NET MAUI workload; added a catalog/factory consistency test so every current `BuiltInCheckCatalog.Create()` check ID has an executable `IEnvironmentCheck`.
+  - Related files: `src/WindowsDevInspector.Windows/NuGetSourcesCheck.cs`, `src/WindowsDevInspector.Windows/VisualStudioBuildToolsCheck.cs`, `src/WindowsDevInspector.Windows/BrowserAvailabilityCheck.cs`, `src/WindowsDevInspector.Windows/AndroidSdkCheck.cs`, `src/WindowsDevInspector.Windows/DotNetMauiWorkloadCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests`.
+  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
+
 - [x] Complete first-pass result remediation selection behavior.
   - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
   - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_SMOKE_TESTS.md`.
@@ -197,11 +202,11 @@ No active implementation task.
 ## Remaining TODO
 
 - [ ] Design approved installation plan schema before enabling any package installation.
-- [ ] Add safe NuGet source diagnostics without logging credentials.
+- [ ] Pending executable checks in current Core catalog: none.
 
 ## Known Issues
 
-- [ ] Some check IDs are documented but not executable yet; pending checks currently surface informational placeholders.
+- [ ] `docs/CHECK_CATALOG.md` contains planning rows that are not yet in the Core catalog; they should remain documentation-only until selected for implementation.
 - [ ] Automated validation does not currently include a WPF UI smoke test.
 
 ## Next Recommended Task

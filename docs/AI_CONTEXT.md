@@ -20,6 +20,7 @@
 - Process execution with timeout and output decoding.
 - File system checks and approved directory creation.
 - Environment variable inspection for PATH diagnostics.
+- Read-only developer tooling checks for NuGet sources, Visual Studio Build Tools, common browsers, Android SDK paths, and .NET MAUI workloads.
 
 ### Testing
 
@@ -161,7 +162,12 @@ No separate lint or format command is currently documented. Build enforces code 
 - `EnvironmentScanService` runs executable checks with bounded concurrency. The WPF UI exposes a scan concurrency dropdown from 1 through `Environment.ProcessorCount`; the default leaves one processor available.
 - PowerShell checks should not compare against the latest version. `desktop.powershell` checks Windows PowerShell availability, and `common.powershell7` checks `pwsh` availability; version output is informational current value only.
 - Chocolatey is represented by `chocolatey` -> `common.chocolatey`, implemented with `choco --version`. Missing Chocolatey should be Info, not Warning.
-- Current known validation count is 148 passing tests after reversible directory remediation and Windows baseline checks were added.
+- NuGet source diagnostics must redact credentials, tokens, passwords, API keys, and credential-bearing URLs before putting command output into `CheckResult`.
+- Visual Studio Build Tools diagnostics use `vswhere.exe` read-only detection and must not invoke VS Installer repair or installation behavior.
+- Browser availability diagnostics must not launch browsers or inspect user profiles, cookies, or browser data.
+- Android SDK diagnostics may inspect `ANDROID_HOME`, `ANDROID_SDK_ROOT`, common SDK paths, and SDK tool file presence; they must not modify environment variables.
+- .NET MAUI diagnostics use `dotnet workload list` read-only output and must not install workloads or modify dotnet configuration.
+- Current known validation count is 164 passing tests after all current Core catalog check IDs were backed by executable checks.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
