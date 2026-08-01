@@ -46,14 +46,16 @@ Then verify:
 - Clicking Start Check runs a read-only scan and eventually re-enables the UI.
 - Non-pass results appear before pass results.
 - Pass results do not show a remediation checkbox.
-- Selecting a result updates the detail area with current value, expected value, impact, risk, restart, elevation, rollback, and remediation information where available.
+- Selecting a result updates the detail area with current value, expected value, impact, fixability, risk, restart, elevation, Rollback, and remediation information where available.
 - The environment score is visible after a scan and reflects the current result set.
-- Batch remediation selects only supported low-risk non-pass items.
-- Starting remediation shows UAC, backup, restart, and rollback context before any elevated action is launched.
+- Batch selection checks only supported low-risk non-pass remediation items and does not execute them immediately.
+- Starting remediation processes only currently checked remediation items.
+- Starting remediation shows UAC, backup, restart, Rollback, and whitelist context before any local or elevated action is launched.
 - Cancelling remediation confirmation leaves the system unchanged and keeps the app usable.
 - Scan report export creates a JSON report and shows a clear success or failure message.
 - Backup browser loads without crashing when no backup files exist.
 - Rollback controls remain unavailable or explain why rollback cannot run when no backup is selected.
+- Starting rollback from a selected backup shows UAC, backup validation, approved-target, and rescan context before ElevatedWorker is launched.
 
 ## Safety Checks
 

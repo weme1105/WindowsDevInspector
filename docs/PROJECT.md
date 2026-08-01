@@ -93,9 +93,9 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, scoring, App-layer service extraction, and App service test coverage slices.
+The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
-There is an uncommitted UI polish change that moves report export to the result header, adds a "hide PASS results" toggle, and constrains the selected-fix button width. After that is reviewed and committed, the next development phase should focus on WPF smoke-test coverage and Phase 4/5 diagnostic expansion.
+The next development phase should continue small vertical slices for approved installation-plan design, safe diagnostics expansion, and eventual WPF automation or ViewModel extraction.
 
 ## Known Constraints
 

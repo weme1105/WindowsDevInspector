@@ -23,6 +23,11 @@ No active implementation task.
 
 ## Completed
 
+- [x] Complete first-pass result remediation selection behavior.
+  - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
+  - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_SMOKE_TESTS.md`.
+  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
+
 - [x] Add Chocolatey CLI availability check.
   - Completed: added `chocolatey` to the WPF technology picker and Core catalog, backed by a read-only `choco --version` check. Missing Chocolatey reports Info because it is an optional package manager, and detected versions are informational only.
   - Related files: `src/WindowsDevInspector.App/TechnologyCatalog.cs`, `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Windows/CommandVersionCheck.cs`, `tests/WindowsDevInspector.App.Tests/TechnologyCatalogTests.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `tests/WindowsDevInspector.Windows.Tests/CommandVersionCheckTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.

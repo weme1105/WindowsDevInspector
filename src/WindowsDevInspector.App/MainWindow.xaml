@@ -277,6 +277,18 @@
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"
                                Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding FixabilityText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding RemediationContextText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding RemediationText, StringFormat=Remediation: {0}}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="#5D6B82" />
                 </StackPanel>
             </Border>
 
@@ -289,7 +301,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="FixAllButton"
-                        Content="全部修正"
+                        Content="批次勾選"
                         Click="FixAllButton_Click" />
                 <ComboBox x:Name="BackupComboBox"
                           Grid.Column="1"
