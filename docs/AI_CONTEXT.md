@@ -106,6 +106,30 @@ After restore and build:
 dotnet test WindowsDevInspector.sln --no-build
 ```
 
+## CI/CD
+
+GitHub Actions uses `.github/workflows/build.yml`.
+
+CI should run on:
+
+- Pushes to `main`.
+- Pushes to `mvp`.
+- Pull requests targeting `main`.
+- Pull requests targeting `mvp`.
+
+Feature branch pushes should not run CI by default. A feature branch is validated when it opens or updates a pull request into `mvp` or `main`.
+
+## Branching Workflow
+
+- `main` or `master` is the stable baseline.
+- `mvp` is an integration branch created from the stable baseline for MVP development.
+- Future production release branches should use `prd/<version>` from the stable baseline.
+- New feature work must branch from the current integration branch, for example `mvp` or `prd/<version>`, and open PRs back to that same integration branch.
+- After a feature PR is merged, do not continue new work on that merged feature branch. Start a new feature branch from the current integration branch instead.
+- When MVP is complete, open a PR from `mvp` back to `main` or `master`.
+- When a PRD release branch is ready to update the product, open a PR from `prd/<version>` back to `main` or `master`.
+- If commits are accidentally made on an already merged feature branch, move them to a new feature branch from the current integration branch, normally with `git cherry-pick`, rather than reopening or continuing the merged branch.
+
 ## Run Commands
 
 ```powershell
@@ -178,7 +202,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - localhost bind diagnostics may open a short-lived ephemeral listener on `127.0.0.1` through `ILocalhostBindProbe`, then close it immediately; they must not reserve fixed ports or modify firewall/network configuration.
 - Code Integrity diagnostics use read-only `wevtutil` queries against `Microsoft-Windows-CodeIntegrity/Operational`; they must not change event log channels or Windows security policy.
 - Smart App Control diagnostics inspect `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState` read-only when present; they must never disable or toggle Smart App Control.
-- Current known validation count is 174 passing tests after MVP WSL/Docker diagnostics were clarified.
+- Current known validation count is 198 passing tests after advanced Windows diagnostics and catalog gap tests were added on top of `origin/mvp`.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes

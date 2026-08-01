@@ -23,7 +23,7 @@ No ready implementation task for MVP environment checks.
 - [x] Complete advanced Windows diagnostics and catalog gap slice.
   - Completed: firewall profiles, localhost bind health, Code Integrity event query, and Smart App Control diagnostics are implemented as read-only checks. Electron, React Native, Swift, Flask package, pytest package, Rails gem, and Cargo CLI first-pass diagnostics are represented in Core catalog and executable factory. Security diagnostics now run as baseline checks.
   - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Core/CheckCatalog.cs`, `src/WindowsDevInspector.Windows/FirewallProfilesCheck.cs`, `src/WindowsDevInspector.Windows/LocalhostBindHealthCheck.cs`, `src/WindowsDevInspector.Windows/CodeIntegrityEventsCheck.cs`, `src/WindowsDevInspector.Windows/SmartAppControlCheck.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`, `docs/ROADMAP.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
-  - Verification: pending revalidation after moving the commit onto a fresh branch from `origin/mvp`.
+  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build` (198 passed).
 
 - [x] Add reversible backup behavior for every approved remediation.
   - Completed: local directory fixes now write encrypted backup records, directory rollback removes only tool-created directories that are still empty, registry rollback still goes through ElevatedWorker, elevated rollback process launching is testable through an injectable worker runner, and missing rollback result files are surfaced as worker failures.

@@ -467,9 +467,33 @@ mvp = MVP integration and validation branch
 feature/<task-name> = focused development branch
 ```
 
-Feature work should branch from the latest `mvp` and open PRs back into `mvp`.
+Feature work must branch from the latest active integration branch and open PRs back into that same integration branch.
+
+For MVP work:
+
+```text
+main
+  -> mvp
+      -> feature/<task-name>
+      -> PR back to mvp
+```
+
+For later production release work:
+
+```text
+main or master
+  -> prd/<version>
+      -> feature/<task-name>
+      -> PR back to prd/<version>
+```
+
+Do not continue new feature work on a feature branch after its PR has been merged. A merged feature branch is closed for new work. Start the next task from the current integration branch instead.
 
 After MVP validation is complete, open a separate PR from `mvp` into `main`.
+
+When a production release branch is ready to update the stable line, open a PR from `prd/<version>` into `main` or `master`.
+
+CI should run for pull requests that target a mainline branch (`mvp` or `main`) and for pushes to those mainline branches after merge. Feature branch pushes do not need CI by default; a feature branch should be validated when it opens or updates a PR into a mainline branch.
 
 ### Rationale
 
@@ -482,16 +506,21 @@ This keeps `main` reserved for validated states while letting the MVP branch col
 - `main` remains stable.
 - MVP validation can happen before promotion.
 - Feature PR targets are consistent.
+- Feature branch pushes do not spend CI time until they are proposed for a mainline branch.
+- Merged feature branches do not accumulate unrelated future work.
+- Production release branches can stabilize independently before updating `main` or `master`.
 
 #### Negative
 
 - Work must be kept synchronized with `mvp`.
 - PR base branches need to be checked before creation.
+- Mistaken work on an already merged feature branch must be moved to a new feature branch from the current integration branch, normally by cherry-picking the relevant commits.
 
 ### Follow-up Actions
 
 - [ ] Keep draft feature PRs targeted at `mvp` unless the task is a hotfix for `main`.
 - [ ] Promote `mvp` to `main` only after build, tests, and manual MVP validation pass.
+- [ ] For PRD releases, branch `prd/<version>` from `main` or `master`, merge feature PRs into that PRD branch, and merge PRD back to the stable line only when releasing.
 
 ---
 
