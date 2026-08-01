@@ -3,6 +3,8 @@ namespace WindowsDevInspector.Windows.Tests;
 public sealed class BuiltInEnvironmentCheckFactoryTests
 {
     [Theory]
+    [InlineData("common.windows-version")]
+    [InlineData("common.processor-architecture")]
     [InlineData("backend.dotnet-cli")]
     [InlineData("common.path-invalid-entries")]
     [InlineData("common.path-duplicate-entries")]

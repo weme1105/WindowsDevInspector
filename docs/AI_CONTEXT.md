@@ -85,6 +85,7 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - Do not automatically delete unknown PATH entries.
 - Do not modify registry values without backup.
 - All remediation must use approved remediation IDs.
+- Automatic encrypted backup and rollback apply to all currently approved remediation IDs. Registry DWORD rollback goes through `ElevatedWorker`; directory rollback is handled in App-layer remediation code and deletes only tool-created directories that are still empty.
 
 ## Build Commands
 
@@ -160,7 +161,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `EnvironmentScanService` runs executable checks with bounded concurrency. The WPF UI exposes a scan concurrency dropdown from 1 through `Environment.ProcessorCount`; the default leaves one processor available.
 - PowerShell checks should not compare against the latest version. `desktop.powershell` checks Windows PowerShell availability, and `common.powershell7` checks `pwsh` availability; version output is informational current value only.
 - Chocolatey is represented by `chocolatey` -> `common.chocolatey`, implemented with `choco --version`. Missing Chocolatey should be Info, not Warning.
-- Current known validation count is 136 passing tests after the Chocolatey CLI availability check was added.
+- Current known validation count is 148 passing tests after reversible directory remediation and Windows baseline checks were added.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes

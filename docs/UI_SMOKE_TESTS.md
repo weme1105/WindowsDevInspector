@@ -51,6 +51,7 @@ Then verify:
 - Batch selection checks only supported low-risk non-pass remediation items and does not execute them immediately.
 - Starting remediation processes only currently checked remediation items.
 - Starting remediation shows UAC, backup, restart, Rollback, and whitelist context before any local or elevated action is launched.
+- Directory creation remediation creates an encrypted backup record. Rollback removes the directory only when it was created by the tool and is still empty.
 - Cancelling remediation confirmation leaves the system unchanged and keeps the app usable.
 - Scan report export creates a JSON report and shows a clear success or failure message.
 - Backup browser loads without crashing when no backup files exist.

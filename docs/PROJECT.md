@@ -93,7 +93,7 @@ WindowsDevInspector.App
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus the first safe remediation, backup, rollback, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
+The project has completed the initial diagnostic MVP plus Windows baseline checks, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
 The next development phase should continue small vertical slices for approved installation-plan design, safe diagnostics expansion, and eventual WPF automation or ViewModel extraction.
 

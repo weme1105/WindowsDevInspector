@@ -23,6 +23,16 @@ No active implementation task.
 
 ## Completed
 
+- [x] Add reversible backup behavior for every approved remediation.
+  - Completed: local directory fixes now write encrypted backup records, directory rollback removes only tool-created directories that are still empty, registry rollback still goes through ElevatedWorker, elevated rollback process launching is testable through an injectable worker runner, and missing rollback result files are surfaced as worker failures.
+  - Related files: `src/WindowsDevInspector.App/RemediationCoordinator.cs`, `src/WindowsDevInspector.App/IWorkerProcessRunner.cs`, `src/WindowsDevInspector.App/WorkerProcessRunner.cs`, `src/WindowsDevInspector.Remediation/DirectoryBackup.cs`, `src/WindowsDevInspector.Remediation/DirectoryRollbackExecutor.cs`, `src/WindowsDevInspector.Remediation/BackupFileService.cs`, `src/WindowsDevInspector.Remediation/DpapiBackupProtector.cs`, `src/WindowsDevInspector.Remediation/MachineFingerprint.cs`, `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`, `src/WindowsDevInspector.Windows/DirectoryExistsCheck.cs`, `tests/WindowsDevInspector.App.Tests/RemediationCoordinatorTests.cs`, `tests/WindowsDevInspector.Remediation.Tests/DirectoryRollbackExecutorTests.cs`, `tests/WindowsDevInspector.Windows.Tests/DirectoryExistsCheckTests.cs`, `docs/AI_CONTEXT.md`, `docs/UI_SMOKE_TESTS.md`.
+  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
+
+- [x] Add Windows baseline checks for version and processor architecture.
+  - Completed: Common baseline now includes executable read-only checks for Windows version/build and processor architecture.
+  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Windows/WindowsVersionCheck.cs`, `src/WindowsDevInspector.Windows/ProcessorArchitectureCheck.cs`, `tests/WindowsDevInspector.Windows.Tests/WindowsVersionCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/ProcessorArchitectureCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`.
+  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
+
 - [x] Complete first-pass result remediation selection behavior.
   - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
   - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_SMOKE_TESTS.md`.

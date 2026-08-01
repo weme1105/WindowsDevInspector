@@ -85,6 +85,7 @@ public static class BuiltInCheckCatalog
     {
         return [
             Check("common.windows-version", "Windows version and build", "Common"),
+            Check("common.processor-architecture", "Processor architecture", "Common"),
             Check("common.path-invalid-entries", "PATH invalid entries", "Common", CheckSeverity.Warning),
             Check("common.path-duplicate-entries", "PATH duplicate entries", "Common"),
             Check("common.long-paths", "Long Paths enabled", "Common", CheckSeverity.Warning, true, RiskLevel.Low, true, false, true, "enable-long-paths"),

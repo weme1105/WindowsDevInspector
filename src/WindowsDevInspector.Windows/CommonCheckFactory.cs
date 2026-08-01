@@ -11,6 +11,8 @@ public static class CommonCheckFactory
         IEnvironmentVariableReader environmentReader)
     {
         return [
+            new WindowsVersionCheck(),
+            new ProcessorArchitectureCheck(),
             new PathInvalidEntriesCheck(environmentReader),
             new PathDuplicateEntriesCheck(environmentReader),
             new DirectoryExistsCheck("common.directory-source", "Common", "D:\\Source exists", "D:\\Source", fileSystem, "create-source-directory"),
