@@ -471,6 +471,8 @@ Feature work should branch from the latest `mvp` and open PRs back into `mvp`.
 
 After MVP validation is complete, open a separate PR from `mvp` into `main`.
 
+CI should run for pull requests that target a mainline branch (`mvp` or `main`) and for pushes to those mainline branches after merge. Feature branch pushes do not need CI by default; a feature branch should be validated when it opens or updates a PR into a mainline branch.
+
 ### Rationale
 
 This keeps `main` reserved for validated states while letting the MVP branch collect small reviewed slices.
@@ -482,6 +484,7 @@ This keeps `main` reserved for validated states while letting the MVP branch col
 - `main` remains stable.
 - MVP validation can happen before promotion.
 - Feature PR targets are consistent.
+- Feature branch pushes do not spend CI time until they are proposed for a mainline branch.
 
 #### Negative
 

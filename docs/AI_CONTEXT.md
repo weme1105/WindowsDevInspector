@@ -105,6 +105,19 @@ After restore and build:
 dotnet test WindowsDevInspector.sln --no-build
 ```
 
+## CI/CD
+
+GitHub Actions uses `.github/workflows/build.yml`.
+
+CI should run on:
+
+- Pushes to `main`.
+- Pushes to `mvp`.
+- Pull requests targeting `main`.
+- Pull requests targeting `mvp`.
+
+Feature branch pushes should not run CI by default. A feature branch is validated when it opens or updates a pull request into `mvp` or `main`.
+
 ## Run Commands
 
 ```powershell
