@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
-using WindowsDevInspector.Remediation;
 
-namespace WindowsDevInspector.ElevatedWorker;
+namespace WindowsDevInspector.Remediation;
 
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class DpapiBackupProtector : IBackupProtector
 {
     private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("WindowsDevInspector.Backup.v1");

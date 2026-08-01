@@ -197,7 +197,7 @@ public partial class MainWindow : Window
 
         try
         {
-            WorkerExecutionResult rollbackResult = await remediationCoordinator.ExecuteElevatedRollbackAsync(backupPath);
+            WorkerExecutionResult rollbackResult = await remediationCoordinator.ExecuteRollbackAsync(backupPath);
             await RunScanAsync();
             RefreshBackupFiles();
 

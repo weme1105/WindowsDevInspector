@@ -34,17 +34,28 @@ public sealed class DirectoryRemediationExecutor(
                 "This remediation is whitelisted but is not supported by the directory executor."));
         }
 
-        if (fileSystem.DirectoryExists(path))
+        bool existedBeforeRemediation = fileSystem.DirectoryExists(path);
+        DirectoryBackup backup = new()
+        {
+            RemediationId = remediationId,
+            Path = path,
+            ExistedBeforeRemediation = existedBeforeRemediation
+        };
+        string backupJson = System.Text.Json.JsonSerializer.Serialize(backup);
+
+        if (existedBeforeRemediation)
         {
             return Task.FromResult(RemediationExecutionResult.Success(
                 remediationId,
-                $"Directory already exists: {path}"));
+                $"Directory already exists: {path}",
+                backupJson));
         }
 
         fileSystem.CreateDirectory(path);
 
         return Task.FromResult(RemediationExecutionResult.Success(
             remediationId,
-            $"Directory created: {path}"));
+            $"Directory created: {path}",
+            backupJson));
     }
 }

@@ -8,8 +8,8 @@ JsonSerializerOptions jsonOptions = new()
     WriteIndented = true
 };
 BackupFileService backupFileService = new(
-    new DpapiBackupProtector(),
-    MachineFingerprint.CreateFromMacAddresses());
+    new WindowsDevInspector.Remediation.DpapiBackupProtector(),
+    WindowsDevInspector.Remediation.MachineFingerprint.CreateFromMacAddresses());
 string? resultPath = null;
 
 if (args.Length is not 1 and not 2 and not 3)

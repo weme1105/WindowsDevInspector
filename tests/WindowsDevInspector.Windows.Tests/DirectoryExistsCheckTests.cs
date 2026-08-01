@@ -36,6 +36,7 @@ public sealed class DirectoryExistsCheckTests
 
         Assert.Equal(CheckSeverity.Warning, result.Severity);
         Assert.True(result.CanFix);
+        Assert.True(result.SupportsRollback);
         Assert.Equal("create-source-directory", result.RemediationId);
     }
 
