@@ -14,6 +14,45 @@ The product explains what is installed, missing, risky, or ready to use. It prio
 
 Windows developer workstation diagnostics and safe local environment remediation.
 
+## Technology Selection
+
+- Language: C#.
+- Runtime: .NET 10.
+- Desktop UI: WPF.
+- Architecture: MVVM-oriented WPF with clear project boundaries.
+- Dependency injection: `Microsoft.Extensions.DependencyInjection`.
+- Logging: `Microsoft.Extensions.Logging` or Serilog.
+- JSON: `System.Text.Json`.
+- Tests: xUnit.
+- Windows integration: Registry, services, optional features, process execution, file system, and environment variables.
+- Installer/remediation tooling: winget where appropriate.
+- Commercial or restrictive-license dependencies require approval.
+
+## Solution Structure
+
+```text
+WindowsDevInspector.sln
+├─ src
+│  ├─ WindowsDevInspector.App
+│  ├─ WindowsDevInspector.Core
+│  ├─ WindowsDevInspector.Windows
+│  ├─ WindowsDevInspector.Remediation
+│  └─ WindowsDevInspector.ElevatedWorker
+├─ tests
+│  ├─ WindowsDevInspector.Core.Tests
+│  ├─ WindowsDevInspector.App.Tests
+│  ├─ WindowsDevInspector.Windows.Tests
+│  ├─ WindowsDevInspector.Remediation.Tests
+│  └─ WindowsDevInspector.ElevatedWorker.Tests
+├─ profiles
+├─ docs
+└─ artifacts
+```
+
+When source or test projects are added, removed, or renamed, update this
+structure and the related architecture sections in this document in the same
+change.
+
 ## Target Users
 
 - Windows-based software developers.

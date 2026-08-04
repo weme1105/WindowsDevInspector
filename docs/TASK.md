@@ -2,15 +2,15 @@
 
 ## Current Objective
 
-Make the current repository state recoverable across AI sessions by maintaining the standard project-memory documents and then continue small vertical slices for diagnostics and remediation.
+Keep the repository instruction and handoff documents concise, evidence-backed, and easy to continue across Codex conversations.
 
 ## In Progress
 
-No active implementation task.
+No active implementation task. The reusable handoff workflow and its Repository rules have been defined; the existing Completed history still needs a one-time cleanup pass.
 
 ## Ready
 
-No ready implementation task for MVP environment checks.
+- [ ] Apply the `prepare-project-handoff` workflow to classify the existing Completed history, preserve durable decisions, and trim `docs/TASK.md` to active state only.
 
 ## Blocked
 
@@ -27,7 +27,7 @@ No ready implementation task for MVP environment checks.
 
 - [x] Add reversible backup behavior for every approved remediation.
   - Completed: local directory fixes now write encrypted backup records, directory rollback removes only tool-created directories that are still empty, registry rollback still goes through ElevatedWorker, elevated rollback process launching is testable through an injectable worker runner, and missing rollback result files are surfaced as worker failures.
-  - Related files: `src/WindowsDevInspector.App/RemediationCoordinator.cs`, `src/WindowsDevInspector.App/IWorkerProcessRunner.cs`, `src/WindowsDevInspector.App/WorkerProcessRunner.cs`, `src/WindowsDevInspector.Remediation/DirectoryBackup.cs`, `src/WindowsDevInspector.Remediation/DirectoryRollbackExecutor.cs`, `src/WindowsDevInspector.Remediation/BackupFileService.cs`, `src/WindowsDevInspector.Remediation/DpapiBackupProtector.cs`, `src/WindowsDevInspector.Remediation/MachineFingerprint.cs`, `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`, `src/WindowsDevInspector.Windows/DirectoryExistsCheck.cs`, `tests/WindowsDevInspector.App.Tests/RemediationCoordinatorTests.cs`, `tests/WindowsDevInspector.Remediation.Tests/DirectoryRollbackExecutorTests.cs`, `tests/WindowsDevInspector.Windows.Tests/DirectoryExistsCheckTests.cs`, `docs/AI_CONTEXT.md`, `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `src/WindowsDevInspector.App/RemediationCoordinator.cs`, `src/WindowsDevInspector.App/IWorkerProcessRunner.cs`, `src/WindowsDevInspector.App/WorkerProcessRunner.cs`, `src/WindowsDevInspector.Remediation/DirectoryBackup.cs`, `src/WindowsDevInspector.Remediation/DirectoryRollbackExecutor.cs`, `src/WindowsDevInspector.Remediation/BackupFileService.cs`, `src/WindowsDevInspector.Remediation/DpapiBackupProtector.cs`, `src/WindowsDevInspector.Remediation/MachineFingerprint.cs`, `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`, `src/WindowsDevInspector.Windows/DirectoryExistsCheck.cs`, `tests/WindowsDevInspector.App.Tests/RemediationCoordinatorTests.cs`, `tests/WindowsDevInspector.Remediation.Tests/DirectoryRollbackExecutorTests.cs`, `tests/WindowsDevInspector.Windows.Tests/DirectoryExistsCheckTests.cs`, `docs/AI_CONTEXT.md`, `docs/UI_RULES.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
 
 - [x] Add Windows baseline checks for version and processor architecture.
@@ -47,17 +47,17 @@ No ready implementation task for MVP environment checks.
 
 - [x] Complete MVP validation pass.
   - Completed: Release build and test passed; WPF app launch smoke passed; manual WPF UI smoke checklist was completed by the user.
-  - Related files: `docs/UI_SMOKE_TESTS.md`, `docs/TASK.md`.
+  - Related files: `docs/UI_RULES.md`, `docs/TASK.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`; manual WPF smoke checklist.
 
 - [x] Add MVP release documentation.
   - Completed: added privacy statement, release notes, and demo screenshot capture plan; README and project documentation now link to the MVP release artifacts.
-  - Related files: `docs/PRIVACY.md`, `docs/RELEASE_NOTES.md`, `docs/DEMO_SCREENSHOTS.md`, `README.md`, `docs/PROJECT.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
+  - Related files: `docs/PRIVACY.md`, `docs/RELEASE_NOTES.md`, `docs/UI_RULES.md`, `README.md`, `docs/PROJECT.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
   - Verification: documentation review; build/test should be rerun before commit because repository documentation changed after the last validation run.
 
 - [x] Complete first-pass result remediation selection behavior.
   - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
-  - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_RULES.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
 
 - [x] Add Chocolatey CLI availability check.
@@ -77,7 +77,7 @@ No ready implementation task for MVP environment checks.
 
 - [x] Add select-all and clear-all toggle for technology selection.
   - Completed: replaced the one-way clear-all action with a toggle button that selects all visible technologies when not all are selected and clears all visible technologies when all are selected.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionToggleTests.cs`, `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionToggleTests.cs`, `docs/UI_RULES.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
 
 - [x] Add Core mappings for selected language/runtime backlog technologies.
@@ -122,7 +122,7 @@ No ready implementation task for MVP environment checks.
 
 - [x] Align the WPF UI with technology-only selection wording.
   - Completed: clarified that category headings are browsing aids, kept existing default suggested technologies, and added a clear-all selection action for users who want to start from an empty technology set.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `docs/UI_RULES.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
 
 - [x] Decide whether role selection is still a separate UI concept or represented only by technology groups.
@@ -142,12 +142,12 @@ No ready implementation task for MVP environment checks.
 
 - [x] Reconcile README scope wording with the now-completed remediation, backup, rollback, and scoring slices.
   - Completed: updated README scope, architecture wording, test project list, and documentation links to reflect current implementation.
-  - Related files: `README.md`, `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `README.md`, `docs/UI_RULES.md`.
   - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
 
 - [x] Add UI smoke-test checklist or automation strategy for WPF behavior.
   - Completed: added a manual WPF UI smoke-test checklist with safety checks, exit criteria, and a staged automation strategy.
-  - Related files: `docs/UI_SMOKE_TESTS.md`.
+  - Related files: `docs/UI_RULES.md`.
   - Verification: documentation review.
 
 - [x] Create .NET 10 WPF solution structure.
@@ -229,4 +229,4 @@ No ready implementation task for MVP environment checks.
 
 ## Next Recommended Task
 
-Design approved installation plan schema before enabling any package installation.
+Run `prepare-project-handoff` for the existing TASK history, then resume design of the approved installation plan schema before enabling package installation.

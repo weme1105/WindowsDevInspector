@@ -15,6 +15,7 @@
 | DEC-009 | Use `mvp` as the integration branch before `main` | Accepted | 2026-07-31 |
 | DEC-010 | Use explicit technology selection instead of independent role selection | Accepted | 2026-07-31 |
 | DEC-011 | Keep Phase 4 package planning read-only until install plans are approved | Accepted | 2026-07-31 |
+| DEC-012 | Keep TASK focused on active handoff state | Accepted | 2026-08-04 |
 
 ---
 
@@ -618,3 +619,51 @@ The app should not require a tool to be on the newest available package version.
 - Check catalog
 - Future remediation design
 - Security
+
+---
+
+## DEC-012: Keep TASK Focused on Active Handoff State
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-04
+
+### Context
+
+`docs/TASK.md` was originally used to preserve state across Codex conversations, but its Completed section accumulated a long implementation history. That makes the current objective, blockers, verification, and next action harder to find and duplicates information already available from Git, pull requests, tests, release notes, and durable decision records.
+
+### Decision
+
+At handoff, keep `docs/TASK.md` focused on current work and the next actionable slice.
+
+- Move completed work that creates a durable architecture, security, technology, product, compatibility, deployment, or workflow decision into `docs/DECISION.md` before removing it from `docs/TASK.md`.
+- Do not represent routine implementation history as a decision. Remove routine completed items after confirming durable evidence in Git, pull requests, tests, or release notes.
+- If complete historical retention is explicitly required, use a separate Completed Work Archive section rather than mixing routine work into the decision index.
+- Update Current Objective, In Progress, blockers, remaining work, known issues, latest verification, and Next Recommended Task during every handoff.
+- Update `docs/AI_CONTEXT.md` only when stable technical context changes.
+
+The reusable execution workflow is provided by the personal `prepare-project-handoff` Skill.
+
+### Consequences
+
+#### Positive
+
+- New conversations can identify the current state and next step quickly.
+- Decision history retains rationale instead of becoming a generic completion log.
+- Routine implementation history remains available from its authoritative evidence.
+
+#### Negative
+
+- Handoff requires classifying completed work before removing it from TASK.
+- Existing historical Completed entries require a one-time cleanup pass.
+
+### Impacted Areas
+
+- Repository Agent rules
+- TASK handoff process
+- Decision records
+- AI context maintenance

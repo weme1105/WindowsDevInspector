@@ -175,7 +175,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `docs/MVP_TECHNOLOGY_SCOPE.md`: selected first-version MVP technology list and priority backlog.
 - `docs/PRIVACY.md`: MVP privacy and local-data handling statement.
 - `docs/RELEASE_NOTES.md`: MVP release notes and known limitations.
-- `docs/DEMO_SCREENSHOTS.md`: screenshot capture plan and safety checklist.
+- `docs/UI_RULES.md`: UI behavior, smoke-test checklist, screenshot guidance, and UI automation direction.
 - `docs/ROADMAP.md`: phase progress.
 - `docs/CODEX_DEVELOPMENT_SETUP.md`: local Codex and Windows setup guidance.
 
@@ -224,5 +224,5 @@ No separate lint or format command is currently documented. Build enforces code 
 - MVP technology scope: `docs/MVP_TECHNOLOGY_SCOPE.md`.
 - Privacy statement: `docs/PRIVACY.md`.
 - Release notes: `docs/RELEASE_NOTES.md`.
-- Demo screenshot plan: `docs/DEMO_SCREENSHOTS.md`.
+- UI behavior, smoke tests, and screenshot guidance: `docs/UI_RULES.md`.
 - Roadmap: `docs/ROADMAP.md`.
