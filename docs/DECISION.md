@@ -24,6 +24,7 @@
 | DEC-018 | Hide installation actions until exact winget package availability passes | Accepted | 2026-08-12 |
 | DEC-019 | Framework-dependent deployment with a required .NET 10 Desktop Runtime | Accepted | 2026-08-12 |
 | DEC-020 | Retain versioned MSI files as GitHub Release assets | Accepted | 2026-08-13 |
+| DEC-021 | Centralize WPF action availability and type the Worker CLI router | Accepted | 2026-08-13 |
 
 ---
 
@@ -927,3 +928,28 @@ Unsigned packages are explicitly labeled prerelease and not latest. Signing rema
 - A release tag cannot originate directly from an unmerged feature branch.
 - Publishing requires a deliberate version tag after branch integration and GitHub `contents: write` permission.
 - GitHub authentication and the enabled immutable-release repository setting must remain operational before the first tag is pushed.
+
+---
+
+## DEC-021: Centralize WPF Action Availability and Type the Worker CLI Router
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-13
+
+### Decision
+
+MainWindowActionState is the single App-layer policy for Runtime readiness, busy state, installation-selection mode, executable installation selection, and backup availability. WPF controls refresh from the evaluated policy instead of workflow finally blocks directly enabling buttons. This prevents a failed Runtime prerequisite from being overwritten after scan, remediation, rollback, or installation workflows finish.
+
+ElevatedWorker command-line parsing and dispatch use typed WorkerCommand, WorkerCommandParser, and WorkerCommandRouter models. Existing remediation, --rollback, and --install argument forms, usage text, result paths, JSON contracts, and exit-code semantics remain unchanged.
+
+### Consequences
+
+- Action eligibility is testable without starting WPF.
+- Runtime prerequisite handling remains fail closed after every workflow transition.
+- Program.cs retains composition and execution handlers but no longer owns ad hoc mode parsing and routing.
+- A full MainWindow ViewModel rewrite remains optional follow-up work rather than a release prerequisite.

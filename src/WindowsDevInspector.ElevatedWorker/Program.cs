@@ -12,25 +12,17 @@ BackupFileService backupFileService = new(
     WindowsDevInspector.Remediation.MachineFingerprint.CreateFromMacAddresses());
 string? resultPath = null;
 
-bool isRollback = args.Length > 0
-    && string.Equals(args[0], "--rollback", StringComparison.OrdinalIgnoreCase);
-bool isInstall = args.Length > 0
-    && string.Equals(args[0], "--install", StringComparison.OrdinalIgnoreCase);
-bool hasValidArguments = isRollback || isInstall
-    ? args.Length is 2 or 3
-    : args.Length is 1 or 2;
-
-if (!hasValidArguments)
+WorkerCommandParseResult parseResult = new WorkerCommandParser().Parse(args);
+if (!parseResult.IsValid)
 {
     WriteResult(WorkerExecutionResult.Failed(
         "unknown",
-        ["Usage: WindowsDevInspector.ElevatedWorker <change-plan.json> [result.json] OR --rollback <backup.json> [result.json] OR --install <installation-plan.json> [result.json]"]));
+        [parseResult.Error ?? WorkerCommandParser.Usage]));
     return 2;
 }
 
-resultPath = isRollback || isInstall
-    ? args.Length == 3 ? args[2] : null
-    : args.Length == 2 ? args[1] : null;
+WorkerCommand command = parseResult.Command!;
+resultPath = command.ResultPath;
 
 if (!Elevation.IsProcessElevated())
 {
@@ -40,74 +32,11 @@ if (!Elevation.IsProcessElevated())
     return 5;
 }
 
-if (isRollback)
-{
-    return await RunRollbackAsync(args[1]);
-}
-
-if (isInstall)
-{
-    return await RunInstallationAsync(args[1]);
-}
-
-string planPath = args[0];
-ChangePlan? plan;
-
-try
-{
-    await using FileStream stream = File.OpenRead(planPath);
-    plan = await JsonSerializer.DeserializeAsync<ChangePlan>(stream, jsonOptions);
-}
-catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
-{
-    WriteResult(WorkerExecutionResult.Failed(
-        "unknown",
-        [$"Could not read change plan: {ex.Message}"]));
-    return 3;
-}
-
-ChangePlanValidator validator = new(BuiltInRemediationCatalog.CreateWhitelist());
-ChangePlanValidationResult validationResult = validator.Validate(plan, allowElevationRequiredItems: true);
-
-if (!validationResult.IsValid)
-{
-    WriteResult(WorkerExecutionResult.Failed(plan?.PlanId ?? "unknown", validationResult.Errors));
-    return 4;
-}
-
-RegistryDwordRemediationExecutor registryExecutor = new(
-    BuiltInRemediationCatalog.CreateWhitelist(),
-    new WindowsRemediationRegistry());
-
-List<RemediationExecutionResult> results = [];
-
-foreach (ChangePlanItem item in plan!.Items)
-{
-    try
-    {
-        RemediationExecutionResult executionResult = await registryExecutor.ExecuteAsync(
-            item.RemediationId,
-            CancellationToken.None);
-
-        results.Add(WriteBackupIfAvailable(plan.PlanId, executionResult));
-    }
-    catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or InvalidOperationException)
-    {
-        results.Add(RemediationExecutionResult.Skip(
-            item.RemediationId,
-            $"Remediation failed: {ex.Message}"));
-    }
-}
-
-WriteResult(new WorkerExecutionResult
-{
-    PlanId = plan.PlanId,
-    Succeeded = results.All(result => result.Succeeded),
-    Errors = [],
-    Results = results
-});
-
-return 0;
+WorkerCommandRouter router = new(
+    RunRemediationAsync,
+    RunRollbackAsync,
+    RunInstallationAsync);
+return await router.RouteAsync(command);
 
 void WriteResult(WorkerExecutionResult result)
 {
@@ -156,6 +85,65 @@ RemediationExecutionResult WriteBackupIfAvailable(
     backupFileService.WriteEncryptedBackup(backupPath, executionResult.BackupJson);
 
     return executionResult.WithBackupPath(backupPath);
+}
+
+async Task<int> RunRemediationAsync(string planPath)
+{
+    ChangePlan? plan;
+
+    try
+    {
+        await using FileStream stream = File.OpenRead(planPath);
+        plan = await JsonSerializer.DeserializeAsync<ChangePlan>(stream, jsonOptions);
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+    {
+        WriteResult(WorkerExecutionResult.Failed(
+            "unknown",
+            [$"Could not read change plan: {ex.Message}"]));
+        return 3;
+    }
+
+    ChangePlanValidator validator = new(BuiltInRemediationCatalog.CreateWhitelist());
+    ChangePlanValidationResult validationResult = validator.Validate(plan, allowElevationRequiredItems: true);
+
+    if (!validationResult.IsValid)
+    {
+        WriteResult(WorkerExecutionResult.Failed(plan?.PlanId ?? "unknown", validationResult.Errors));
+        return 4;
+    }
+
+    RegistryDwordRemediationExecutor registryExecutor = new(
+        BuiltInRemediationCatalog.CreateWhitelist(),
+        new WindowsRemediationRegistry());
+    List<RemediationExecutionResult> results = [];
+
+    foreach (ChangePlanItem item in plan!.Items)
+    {
+        try
+        {
+            RemediationExecutionResult executionResult = await registryExecutor.ExecuteAsync(
+                item.RemediationId,
+                CancellationToken.None);
+            results.Add(WriteBackupIfAvailable(plan.PlanId, executionResult));
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or InvalidOperationException)
+        {
+            results.Add(RemediationExecutionResult.Skip(
+                item.RemediationId,
+                $"Remediation failed: {ex.Message}"));
+        }
+    }
+
+    WriteResult(new WorkerExecutionResult
+    {
+        PlanId = plan.PlanId,
+        Succeeded = results.All(result => result.Succeeded),
+        Errors = [],
+        Results = results
+    });
+
+    return 0;
 }
 
 async Task<int> RunRollbackAsync(string backupPath)

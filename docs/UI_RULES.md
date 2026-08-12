@@ -19,6 +19,7 @@
 13. Cancelling the warning clears only the pending installation selection and preserves existing remediation selections. Accepting it clears existing remediation selections and creates only a read-only preview; it must not start winget, request UAC, or modify the system.
 14. Debug builds add exactly one simulated remediation row and one simulated installation row for UI verification. The simulated remediation row must be excluded from execution, and Release builds must not insert either row.
 15. Every scan includes the .NET 10 Desktop Runtime x64 prerequisite. If it is missing, incompatible, or cannot be verified, every remediation and installation checkbox plus modifying action button is disabled, any pending action selection is cleared, and the reason is shown in red.
+16. Modifying-control availability must be derived from MainWindowActionState. Scan, remediation, rollback, and installation finally blocks must refresh the policy and must not unconditionally enable controls.
 
 ## When to run the smoke test
 
