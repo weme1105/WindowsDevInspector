@@ -11,6 +11,31 @@
 | DEC-005 | Protect registry rollback backups with DPAPI | Accepted | 2026-07-29 |
 | DEC-006 | Use explicit command-output decoding for Windows CLI checks | Accepted | 2026-07-29 |
 | DEC-007 | Keep App orchestration in testable App-layer services | Accepted | 2026-07-29 |
+| DEC-008 | Keep the prerelease workflow on the default branch | Accepted | 2026-08-13 |
+
+---
+
+## DEC-008: Keep the Prerelease Workflow on the Default Branch
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-13
+
+### Decision
+
+The default branch owns the GitHub Actions definition used to publish an existing `vMAJOR.MINOR.PATCH` tag. A manual retry checks out the requested tag, verifies that its commit is reachable from `main` or `mvp`, refuses an existing release, and publishes only a version-matched unsigned prerelease and SHA-256 file.
+
+This permits recovery from a workflow failure before release creation without moving or recreating an existing tag. Product source continues to come from the validated tag rather than from the default branch workflow commit.
+
+### Consequences
+
+- GitHub can dispatch a release retry because the workflow exists on the default branch.
+- The release workflow may build an `mvp` tag without merging unrelated MVP product code into `main`.
+- Existing releases and assets remain non-overwritable.
 
 ---
 
