@@ -917,7 +917,7 @@ Accepted
 
 GitHub Releases is the canonical immutable storage for distributed MSI files. A pushed `vMAJOR.MINOR.PATCH` tag may create a prerelease only when the tagged commit is reachable from `main` or `mvp`. The workflow derives `WdiProductVersion` from the tag, restores, builds, tests, validates the MSI database, renames the asset to `WindowsDevInspector-<version>-win-x64.msi`, and publishes a matching `.sha256` file.
 
-The workflow refuses an existing release and never uses `gh release upload --clobber`. Repository-level immutable releases should be enabled so published release tags and assets cannot be modified or deleted. MSI/CAB files remain ignored and are never committed to Git.
+The workflow refuses an existing release and never uses `gh release upload --clobber`. Repository-level immutable releases are enabled so published release tags and assets cannot be modified or deleted. MSI/CAB files remain ignored and are never committed to Git.
 
 Unsigned packages are explicitly labeled prerelease and not latest. Signing remains a separate external-release gate.
 
@@ -926,4 +926,4 @@ Unsigned packages are explicitly labeled prerelease and not latest. Signing rema
 - Windows Installer repair can retrieve the exact original package associated with a released version.
 - A release tag cannot originate directly from an unmerged feature branch.
 - Publishing requires a deliberate version tag after branch integration and GitHub `contents: write` permission.
-- GitHub authentication and immutable-release repository settings must be operational before the first tag is pushed.
+- GitHub authentication and the enabled immutable-release repository setting must remain operational before the first tag is pushed.

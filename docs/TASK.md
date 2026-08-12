@@ -6,7 +6,7 @@ Publish the controlled installation and framework-dependent packaging slice for 
 
 ## In Progress
 
-Framework-dependent deployment and GitHub Release artifact retention are selected. A version tag on `main` or `mvp` builds a version-matched unsigned prerelease MSI plus SHA-256 without overwrite behavior. The test workstation remains uninstalled. No third-party tool installation was executed.
+Framework-dependent deployment and GitHub Release artifact retention are selected. Repository-level Immutable releases is enabled. A version tag on `main` or `mvp` builds a version-matched unsigned prerelease MSI plus SHA-256 without overwrite behavior. The test workstation remains uninstalled. No third-party tool installation was executed.
 
 ## Ready
 
@@ -22,7 +22,6 @@ Framework-dependent deployment and GitHub Release artifact retention are selecte
 ## Remaining TODO
 
 - [ ] Capture and inspect non-sensitive demo screenshots before adding image assets to the Repository.
-- [ ] Re-authenticate GitHub CLI and enable GitHub immutable releases before pushing the first release tag.
 
 ## Known Issues
 
@@ -50,4 +49,4 @@ Framework-dependent deployment and GitHub Release artifact retention are selecte
 
 ## Next Recommended Task
 
-Review and merge the controlled installation slice into `mvp`; then re-authenticate GitHub CLI, enable immutable releases, and deliberately push the first version tag.
+Review and merge the controlled installation slice into `mvp`; then deliberately push the first version tag from the merged commit when an unsigned prerelease is intended.

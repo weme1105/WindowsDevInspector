@@ -104,6 +104,7 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - Installer version is build-parameter driven (`WdiProductVersion`, default 0.1.0). Real lifecycle validation passed for install, 0.1.0→0.1.1 Major Upgrade, downgrade rejection, uninstall, failure rollback, and LocalAppData preservation.
 - MSI repair requires the exact original package source. Versioned release MSI artifacts must be immutable and retained outside Git; rebuilding an MSI at the same path can change PackageCode and break repair source resolution.
 - GitHub Releases is the canonical MSI artifact store. A `vMAJOR.MINOR.PATCH` tag reachable from `main` or `mvp` builds a version-matched unsigned prerelease plus SHA-256 file; the workflow refuses existing releases and never overwrites assets.
+- Repository-level GitHub Immutable releases is enabled for `weme1105/WindowsDevInspector`; published release tags and assets cannot be modified or deleted.
 
 ## Build Commands
 
