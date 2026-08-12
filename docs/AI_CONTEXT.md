@@ -22,6 +22,7 @@
 - Environment variable inspection for PATH diagnostics.
 - Read-only developer tooling checks for NuGet sources, Visual Studio Build Tools, common browsers, Android SDK paths, and .NET MAUI workloads.
 - Read-only WSL and Docker diagnostics with explicit status/version/distribution/engine/service summaries.
+- Read-only advanced Windows diagnostics for firewall profile state, localhost bind health, recent Code Integrity events, and Smart App Control policy state.
 
 ### Testing
 
@@ -88,6 +89,22 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - Do not modify registry values without backup.
 - All remediation must use approved remediation IDs.
 - Automatic encrypted backup and rollback apply to all currently approved remediation IDs. Registry DWORD rollback goes through `ElevatedWorker`; directory rollback is handled in App-layer remediation code and deletes only tool-created directories that are still empty.
+- Controlled package installation accepts exactly one typed package/source/action item from `BuiltInInstallationCatalog`; execution metadata is catalog-owned and unknown JSON fields are rejected.
+- App-layer selection is preview-only. A separate red execution button and second confirmation launch ElevatedWorker `--install`; App never invokes winget directly.
+- The WPF result list uses one `操作` column: remediation rows show `修正`, while package candidates show red `安裝`. Confirming one installation candidate clears and disables remediation selection plus other package candidates; clearing installation mode re-enables them. Cancelling the warning preserves existing remediation selections.
+- Debug builds inject one simulated remediation row and one simulated installation row for UI smoke testing. Both are excluded from real execution; Release builds do not insert the rows.
+- ElevatedWorker reconstructs the exact approved winget tokens, accepts package/source agreements, enforces a five-minute timeout, and kills the process tree on timeout/cancellation. Silent, override, forced scope/version, and automatic rollback are excluded.
+- After winget succeeds, ElevatedWorker refreshes only its own process PATH from current machine/user values and runs the catalog-owned verification executable/arguments with a 30-second timeout. A failed or timed-out verification makes the structured overall result unsuccessful without exposing command stdout/stderr.
+- App shows a real installation action only when the package's current-scan exact winget availability check is PASS; missing winget, unresolved IDs, failures, and timeouts hide it.
+- The unsigned WiX v5 installer packages only WindowsDevInspector output. It does not bundle third-party tools or runtime installers, and generated MSI/CAB files remain ignored build artifacts.
+- Deployment is framework-dependent. WiX requires .NET 10 Desktop Runtime x64 before first installation, while every App scan runs the same Common prerequisite and disables all modifying actions when the result is missing or non-PASS.
+- Installer authoring includes only root framework-dependent output; MSI validation caps payload count and rejects runtime host files to prevent stale self-contained publish output from entering the MSI.
+- CI restores/builds the WiX project on `windows-latest`, validates MSI contents without uploading the unsigned MSI, and runs only for pushes/PRs on `main` and `mvp`.
+- The installer project and solution configurations are pinned to x64; MSI database validation rejects non-x64 Template Summary values.
+- Installer version is build-parameter driven (`WdiProductVersion`, default 0.1.0). Real lifecycle validation passed for install, 0.1.0→0.1.1 Major Upgrade, downgrade rejection, uninstall, failure rollback, and LocalAppData preservation.
+- MSI repair requires the exact original package source. Versioned release MSI artifacts must be immutable and retained outside Git; rebuilding an MSI at the same path can change PackageCode and break repair source resolution.
+- GitHub Releases is the canonical MSI artifact store. A `vMAJOR.MINOR.PATCH` tag reachable from `main` or `mvp` builds a version-matched unsigned prerelease plus SHA-256 file; the workflow refuses existing releases and never overwrites assets.
+- Repository-level GitHub Immutable releases is enabled for `weme1105/WindowsDevInspector`; published release tags and assets cannot be modified or deleted.
 
 ## Build Commands
 
@@ -104,6 +121,30 @@ After restore and build:
 ```powershell
 dotnet test WindowsDevInspector.sln --no-build
 ```
+
+## CI/CD
+
+GitHub Actions uses `.github/workflows/build.yml`.
+
+CI should run on:
+
+- Pushes to `main`.
+- Pushes to `mvp`.
+- Pull requests targeting `main`.
+- Pull requests targeting `mvp`.
+
+Feature branch pushes should not run CI by default. A feature branch is validated when it opens or updates a pull request into `mvp` or `main`.
+
+## Branching Workflow
+
+- `main` or `master` is the stable baseline.
+- `mvp` is an integration branch created from the stable baseline for MVP development.
+- Future production release branches should use `prd/<version>` from the stable baseline.
+- New feature work must branch from the current integration branch, for example `mvp` or `prd/<version>`, and open PRs back to that same integration branch.
+- After a feature PR is merged, do not continue new work on that merged feature branch. Start a new feature branch from the current integration branch instead.
+- When MVP is complete, open a PR from `mvp` back to `main` or `master`.
+- When a PRD release branch is ready to update the product, open a PR from `prd/<version>` back to `main` or `master`.
+- If commits are accidentally made on an already merged feature branch, move them to a new feature branch from the current integration branch, normally with `git cherry-pick`, rather than reopening or continuing the merged branch.
 
 ## Run Commands
 
@@ -126,6 +167,10 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.App/ScanReportExporter.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`
+- `src/WindowsDevInspector.App/PackageInstallationCandidateSelector.cs`
+- `src/WindowsDevInspector.App/PackageInstallationConfirmationBuilder.cs`
+- `src/WindowsDevInspector.App/PackageInstallationCoordinator.cs`
+- `src/WindowsDevInspector.App/PackageInstallationSelection.cs`
 - `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckResultSorter.cs`
@@ -134,6 +179,11 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.Windows/ProcessCommandRunner.cs`
 - `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`
 - `src/WindowsDevInspector.Remediation/ChangePlanValidator.cs`
+- `src/WindowsDevInspector.Remediation/InstallationPlanValidator.cs`
+- `src/WindowsDevInspector.Remediation/BuiltInInstallationCatalog.cs`
+- `src/WindowsDevInspector.Remediation/PackageInstallationCommandPreviewBuilder.cs`
+- `src/WindowsDevInspector.Remediation/PackageInstallationExecutor.cs`
+- `src/WindowsDevInspector.Remediation/DisabledPackageInstallationProcessRunner.cs`
 - `src/WindowsDevInspector.ElevatedWorker/Program.cs`
 - `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`
 - `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`
@@ -150,7 +200,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - `docs/MVP_TECHNOLOGY_SCOPE.md`: selected first-version MVP technology list and priority backlog.
 - `docs/PRIVACY.md`: MVP privacy and local-data handling statement.
 - `docs/RELEASE_NOTES.md`: MVP release notes and known limitations.
-- `docs/DEMO_SCREENSHOTS.md`: screenshot capture plan and safety checklist.
+- `docs/UI_RULES.md`: UI behavior, smoke-test checklist, screenshot guidance, and UI automation direction.
 - `docs/ROADMAP.md`: phase progress.
 - `docs/CODEX_DEVELOPMENT_SETUP.md`: local Codex and Windows setup guidance.
 
@@ -173,7 +223,11 @@ No separate lint or format command is currently documented. Build enforces code 
 - .NET MAUI diagnostics use `dotnet workload list` read-only output and must not install workloads or modify dotnet configuration.
 - WSL diagnostics use `wsl --status`, `wsl --version`, and `wsl --list --verbose` through `ICommandRunner`; these commands must remain read-only and should not install distributions or modify WSL configuration.
 - Docker diagnostics use `docker --version`, `docker info`, and read-only Windows service status checks; they must not start Docker Desktop, change services, or modify networking.
-- Current known validation count is 174 passing tests after MVP WSL/Docker diagnostics were clarified.
+- Firewall diagnostics use read-only `netsh advfirewall show allprofiles state`; they must not enable, disable, or rewrite firewall policy.
+- localhost bind diagnostics may open a short-lived ephemeral listener on `127.0.0.1` through `ILocalhostBindProbe`, then close it immediately; they must not reserve fixed ports or modify firewall/network configuration.
+- Code Integrity diagnostics use read-only `wevtutil` queries against `Microsoft-Windows-CodeIntegrity/Operational`; they must not change event log channels or Windows security policy.
+- Smart App Control diagnostics inspect `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState` read-only when present; they must never disable or toggle Smart App Control.
+- Current known validation count is 236 passing Release tests after the fail-closed executor and shared command-preview tests.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
@@ -195,5 +249,5 @@ No separate lint or format command is currently documented. Build enforces code 
 - MVP technology scope: `docs/MVP_TECHNOLOGY_SCOPE.md`.
 - Privacy statement: `docs/PRIVACY.md`.
 - Release notes: `docs/RELEASE_NOTES.md`.
-- Demo screenshot plan: `docs/DEMO_SCREENSHOTS.md`.
+- UI behavior, smoke tests, and screenshot guidance: `docs/UI_RULES.md`.
 - Roadmap: `docs/ROADMAP.md`.

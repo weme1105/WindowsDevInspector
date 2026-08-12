@@ -1,0 +1,50 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
+  <Package Name="WindowsDevInspector"
+           Manufacturer="WindowsDevInspector"
+           Version="$(var.WdiProductVersion)"
+           UpgradeCode="8E254A86-6223-4C33-B0EC-CB0FB0D7DB8C"
+           Scope="perMachine">
+
+    <SummaryInformation Description="Windows developer workstation diagnostics and controlled remediation" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of WindowsDevInspector is already installed."
+                  Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" />
+    <netfx:DotNetCompatibilityCheck Property="WDI_DOTNET_DESKTOP_RUNTIME_CHECK"
+                                     RollForward="latestPatch"
+                                     RuntimeType="desktop"
+                                     Platform="x64"
+                                     Version="10.0.0" />
+    <Launch Condition="Installed OR WDI_DOTNET_DESKTOP_RUNTIME_CHECK = 0"
+            Message="WindowsDevInspector requires Microsoft .NET 10 Desktop Runtime x64. Install the runtime, then run this installer again." />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="WindowsDevInspector" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="WindowsDevInspector" />
+    </StandardDirectory>
+
+    <Files Directory="INSTALLFOLDER" Include="!(bindpath.AppOutput)\*">
+      <Exclude Files="!(bindpath.AppOutput)\*.pdb" />
+    </Files>
+
+    <Component Id="StartMenuShortcutComponent"
+               Directory="ApplicationProgramsFolder"
+               Guid="4F58E9C2-7631-4CBB-B4D7-C4A9B5EA28EA">
+      <Shortcut Id="StartMenuShortcut"
+                Name="WindowsDevInspector"
+                Description="Inspect Windows developer workstation readiness"
+                Target="[INSTALLFOLDER]WindowsDevInspector.App.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU"
+                     Key="Software\WindowsDevInspector\Installer"
+                     Name="StartMenuShortcut"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+  </Package>
+</Wix>

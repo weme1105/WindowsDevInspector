@@ -23,7 +23,10 @@ public static class ResultFixSelection
     public static CheckResultRow[] GetSelectedFixes(IEnumerable<CheckResultRow> results)
     {
         return results
-            .Where(result => result.IsSelectedForFix && result.IsFixSelectable && result.RemediationId is not null)
+            .Where(result => result.IsSelectedForFix
+                && result.IsFixSelectable
+                && !result.IsSimulation
+                && result.RemediationId is not null)
             .ToArray();
     }
 }

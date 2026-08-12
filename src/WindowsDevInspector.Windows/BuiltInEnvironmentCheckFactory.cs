@@ -11,11 +11,12 @@ public static class BuiltInEnvironmentCheckFactory
         ICommandRunner commandRunner = new ProcessCommandRunner();
         IServiceReader serviceReader = new WindowsServiceReader();
         IEnvironmentVariableReader environmentReader = new SystemEnvironmentVariableReader();
+        ILocalhostBindProbe localhostBindProbe = new SystemLocalhostBindProbe();
         return CommonCheckFactory
             .Create(fileSystem, registryReader, commandRunner, environmentReader)
             .Concat(CreateCliChecks(commandRunner, fileSystem))
             .Concat(CreatePackageAvailabilityChecks(commandRunner))
-            .Concat(CreateWindowsIntegrationChecks(commandRunner, serviceReader, fileSystem, environmentReader))
+            .Concat(CreateWindowsIntegrationChecks(commandRunner, registryReader, serviceReader, fileSystem, environmentReader, localhostBindProbe))
             .ToDictionary(check => check.Id, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -36,13 +37,17 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("frontend.angular-cli", "Frontend", "Angular CLI", "ng", "version", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("frontend.vite-cli", "Frontend", "Vite CLI", "vite", "--version", commandRunner),
             new CommandVersionCheck("frontend.playwright-cli", "Frontend", "Playwright CLI", "npx", "playwright --version", commandRunner, TimeSpan.FromSeconds(8)),
+            new CommandVersionCheck("frontend.electron-package", "Frontend", "Electron package", "npm", "list -g electron --depth=0", commandRunner, TimeSpan.FromSeconds(8), CheckSeverity.Info),
             new CommandVersionCheck("backend.docker-cli", "Backend", "Docker CLI", "docker", "--version", commandRunner),
             new CommandVersionCheck("backend.go-cli", "Backend", "Go CLI", "go", "version", commandRunner),
             new CommandVersionCheck("backend.go-env", "Backend", "Go environment", "go", "env GOVERSION GOPATH GOROOT", commandRunner),
             new CommandVersionCheck("backend.python-cli", "Backend", "Python CLI", "python", "--version", commandRunner),
+            new CommandVersionCheck("backend.flask-package", "Backend", "Flask package", "python", "-m flask --version", commandRunner, TimeSpan.FromSeconds(8), CheckSeverity.Info),
             new CommandVersionCheck("backend.php-cli", "Backend", "PHP CLI", "php", "--version", commandRunner),
             new CommandVersionCheck("backend.ruby-cli", "Backend", "Ruby CLI", "ruby", "--version", commandRunner),
+            new CommandVersionCheck("backend.rails-gem", "Backend", "Rails gem", "rails", "--version", commandRunner, failureSeverity: CheckSeverity.Info),
             new CommandVersionCheck("backend.rust-cli", "Backend", "Rust CLI", "rustc", "--version", commandRunner),
+            new CommandVersionCheck("backend.cargo-cli", "Backend", "Cargo CLI", "cargo", "--version", commandRunner, failureSeverity: CheckSeverity.Info),
             new CommandVersionCheck("backend.java-cli", "Backend", "Java CLI", "java", "-version", commandRunner),
             new CommandVersionCheck("backend.redis-cli", "Backend", "Redis CLI", "redis-cli", "--version", commandRunner),
             new CommandVersionCheck("devops.docker-cli", "DevOps", "Docker CLI", "docker", "--version", commandRunner),
@@ -59,6 +64,7 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("database.sqlite-cli", "Database", "SQLite CLI", "sqlite3", "--version", commandRunner),
             new CommandVersionCheck("database.oracle-client", "Database", "Oracle Client", "sqlplus", "-V", commandRunner),
             new CommandVersionCheck("qa.playwright", "QA", "Playwright availability", "npx", "playwright --version", commandRunner, TimeSpan.FromSeconds(8)),
+            new CommandVersionCheck("qa.pytest-package", "QA", "pytest package", "python", "-m pytest --version", commandRunner, TimeSpan.FromSeconds(8), CheckSeverity.Info),
             new CommandVersionCheck("qa.selenium", "QA", "Selenium tooling", "selenium", "--version", commandRunner),
             new CommandVersionCheck("qa.postman", "QA", "Postman", "postman", "--version", commandRunner),
             new CommandVersionCheck("qa.newman", "QA", "Newman CLI", "newman", "--version", commandRunner),
@@ -66,8 +72,19 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("qa.jmeter", "QA", "JMeter", "jmeter", "--version", commandRunner),
             new CommandVersionCheck("mobile.adb", "Mobile", "ADB CLI", "adb", "version", commandRunner),
             new CommandVersionCheck("mobile.flutter", "Mobile", "Flutter CLI", "flutter", "--version", commandRunner, TimeSpan.FromSeconds(8)),
+            new CommandVersionCheck("mobile.swift-cli", "Mobile", "Swift CLI", "swift", "--version", commandRunner, failureSeverity: CheckSeverity.Info),
             new DotNetMauiWorkloadCheck(commandRunner),
-            new DotNetRuntimeCheck("desktop.dotnet-desktop-runtime", "Desktop", ".NET Desktop Runtime", "Microsoft.WindowsDesktop.App", commandRunner),
+            new DotNetRuntimeCheck(
+                "desktop.dotnet-desktop-runtime",
+                "Common",
+                ".NET 10 Desktop Runtime x64",
+                "Microsoft.WindowsDesktop.App",
+                commandRunner,
+                minimumMajorVersion: 10,
+                dotnetFileName: Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "dotnet",
+                    "dotnet.exe")),
             new CommandVersionCheck("desktop.vscode", "Desktop", "Visual Studio Code", "code", "--version", commandRunner),
             new CommandVersionCheck("desktop.windows-terminal", "Desktop", "Windows Terminal", "wt", "--version", commandRunner),
             new CommandVersionCheck("desktop.powershell", "Desktop", "Windows PowerShell", "powershell", "-NoProfile -Command $PSVersionTable.PSVersion.ToString()", commandRunner),
@@ -104,11 +121,16 @@ public static class BuiltInEnvironmentCheckFactory
 
     private static IReadOnlyList<IEnvironmentCheck> CreateWindowsIntegrationChecks(
         ICommandRunner commandRunner,
+        IRegistryReader registryReader,
         IServiceReader serviceReader,
         IFileSystem fileSystem,
-        IEnvironmentVariableReader environmentReader)
+        IEnvironmentVariableReader environmentReader,
+        ILocalhostBindProbe localhostBindProbe)
     {
         return [
+            new FirewallProfilesCheck(commandRunner),
+            new CodeIntegrityEventsCheck(commandRunner),
+            new SmartAppControlCheck(registryReader),
             new WslStatusCheck(commandRunner),
             new WslVersionCheck(commandRunner),
             new WslDistributionsCheck(commandRunner),
@@ -143,6 +165,7 @@ public static class BuiltInEnvironmentCheckFactory
                 severityWhenUnexpected: CheckSeverity.Warning,
                 missingImpact: "Docker Desktop service should be running for Docker Desktop workflows.",
                 availableImpact: "Docker Desktop service is running."),
+            new LocalhostBindHealthCheck(localhostBindProbe),
             new BrowserAvailabilityCheck(fileSystem),
             new AndroidSdkCheck(environmentReader, fileSystem),
             new FileExistsCheck("desktop.windows-sdk", "Desktop", "Windows SDK", [

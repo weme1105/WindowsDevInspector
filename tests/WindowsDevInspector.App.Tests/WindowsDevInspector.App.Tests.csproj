@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WindowsDevInspector.App\WindowsDevInspector.App.csproj" />
     <ProjectReference Include="..\..\src\WindowsDevInspector.Core\WindowsDevInspector.Core.csproj" />
+    <ProjectReference Include="..\..\src\WindowsDevInspector.Remediation\WindowsDevInspector.Remediation.csproj" />
     <ProjectReference Include="..\..\src\WindowsDevInspector.Windows\WindowsDevInspector.Windows.csproj" />
   </ItemGroup>
 

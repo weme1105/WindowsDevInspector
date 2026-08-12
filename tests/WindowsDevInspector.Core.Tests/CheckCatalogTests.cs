@@ -13,6 +13,11 @@ public sealed class CheckCatalogTests
 
         Assert.Contains(checks, check => check.Id == "common.windows-version");
         Assert.Contains(checks, check => check.Id == "common.git");
+        Assert.Contains(checks, check => check.Id == "desktop.dotnet-desktop-runtime"
+            && check.Category == "Common");
+        Assert.Contains(checks, check => check.Id == "security.firewall-profiles");
+        Assert.Contains(checks, check => check.Id == "security.code-integrity-events");
+        Assert.Contains(checks, check => check.Id == "security.smart-app-control");
     }
 
     [Fact]
@@ -55,6 +60,9 @@ public sealed class CheckCatalogTests
     [InlineData("php", "backend.php-cli")]
     [InlineData("rails", "backend.ruby-cli")]
     [InlineData("rust", "backend.rust-cli")]
+    [InlineData("electron", "frontend.electron-package")]
+    [InlineData("react-native", "mobile.android-sdk")]
+    [InlineData("swift", "mobile.swift-cli")]
     public void ResolveChecks_IncludesToolBacklogTechnologyMappings(string technologyId, string expectedCheckId)
     {
         CheckCatalog catalog = BuiltInCheckCatalog.Create();
@@ -62,6 +70,21 @@ public sealed class CheckCatalogTests
         IReadOnlyList<CheckDefinition> checks = catalog.ResolveChecks([technologyId], includeCommonChecks: false);
 
         Assert.Contains(checks, check => check.Id == expectedCheckId);
+    }
+
+    [Fact]
+    public void ResolveChecks_IncludesDeeperFrameworkPackageDiagnostics()
+    {
+        CheckCatalog catalog = BuiltInCheckCatalog.Create();
+
+        IReadOnlyList<CheckDefinition> checks = catalog.ResolveChecks(
+            ["flask", "pytest", "rails", "rust"],
+            includeCommonChecks: false);
+
+        Assert.Contains(checks, check => check.Id == "backend.flask-package");
+        Assert.Contains(checks, check => check.Id == "qa.pytest-package");
+        Assert.Contains(checks, check => check.Id == "backend.rails-gem");
+        Assert.Contains(checks, check => check.Id == "backend.cargo-cli");
     }
 
     [Fact]

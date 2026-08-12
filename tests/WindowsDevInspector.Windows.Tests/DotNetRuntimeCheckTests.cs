@@ -57,6 +57,29 @@ public sealed class DotNetRuntimeCheckTests
     }
 
     [Fact]
+    public async Task RunAsync_ReturnsInfoWhenOnlyOlderDesktopRuntimeIsListed()
+    {
+        DotNetRuntimeCheck check = new(
+            "desktop.dotnet-desktop-runtime",
+            "Common",
+            ".NET 10 Desktop Runtime x64",
+            "Microsoft.WindowsDesktop.App",
+            new FakeCommandRunner(new CommandRunResult
+            {
+                FileName = "dotnet",
+                Arguments = "--list-runtimes",
+                ExitCode = 0,
+                StandardOutput = "Microsoft.WindowsDesktop.App 9.0.8 [C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App]"
+            }),
+            minimumMajorVersion: 10);
+
+        CheckResult result = await check.RunAsync(CancellationToken.None);
+
+        Assert.Equal(CheckSeverity.Info, result.Severity);
+        Assert.Contains("10.x x64", result.ExpectedValue);
+    }
+
+    [Fact]
     public async Task RunAsync_ReturnsInfoWhenDotnetIsMissing()
     {
         DotNetRuntimeCheck check = new(

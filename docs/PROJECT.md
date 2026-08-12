@@ -14,6 +14,47 @@ The product explains what is installed, missing, risky, or ready to use. It prio
 
 Windows developer workstation diagnostics and safe local environment remediation.
 
+## Technology Selection
+
+- Language: C#.
+- Runtime: .NET 10.
+- Desktop UI: WPF.
+- Architecture: MVVM-oriented WPF with clear project boundaries.
+- Dependency injection: `Microsoft.Extensions.DependencyInjection`.
+- Logging: `Microsoft.Extensions.Logging` or Serilog.
+- JSON: `System.Text.Json`.
+- Tests: xUnit.
+- Windows integration: Registry, services, optional features, process execution, file system, and environment variables.
+- Installer/remediation tooling: winget where appropriate.
+- Commercial or restrictive-license dependencies require approval.
+
+## Solution Structure
+
+```text
+WindowsDevInspector.sln
+├─ src
+│  ├─ WindowsDevInspector.App
+│  ├─ WindowsDevInspector.Core
+│  ├─ WindowsDevInspector.Windows
+│  ├─ WindowsDevInspector.Remediation
+│  └─ WindowsDevInspector.ElevatedWorker
+├─ tests
+│  ├─ WindowsDevInspector.Core.Tests
+│  ├─ WindowsDevInspector.App.Tests
+│  ├─ WindowsDevInspector.Windows.Tests
+│  ├─ WindowsDevInspector.Remediation.Tests
+│  └─ WindowsDevInspector.ElevatedWorker.Tests
+├─ installer
+│  └─ WindowsDevInspector.Installer
+├─ profiles
+├─ docs
+└─ artifacts
+```
+
+When source or test projects are added, removed, or renamed, update this
+structure and the related architecture sections in this document in the same
+change.
+
 ## Target Users
 
 - Windows-based software developers.
@@ -76,7 +117,9 @@ WindowsDevInspector.App
 - `WindowsDevInspector.Core`: check definitions, technology definitions, check catalog, result model, sorting, risk, severity, and environment score.
 - `WindowsDevInspector.Windows`: read-only environment checks and Windows abstractions.
 - `WindowsDevInspector.Remediation`: change plan validation, remediation whitelist, directory remediation, registry DWORD remediation, backup, and rollback support.
-- `WindowsDevInspector.ElevatedWorker`: elevated registry remediation and rollback execution.
+- `WindowsDevInspector.ElevatedWorker`: elevated registry remediation, rollback, and controlled single-package installation execution.
+- `WindowsDevInspector.Installer`: unsigned WiX v5 MSI authoring for WindowsDevInspector files, Major Upgrade, and Start Menu shortcut lifecycle; generated MSI/CAB artifacts are not versioned.
+- `scripts/Test-InstallerPackage.ps1`: read-only MSI database validation for product identity, App/Worker payload, Major Upgrade rows, shortcut target, and prohibited bundled software names.
 
 ## External Integrations
 
@@ -91,13 +134,13 @@ WindowsDevInspector.App
 
 - Runtime: .NET 10.
 - Desktop UI: WPF.
-- Deployment: local Windows desktop app. Installer, signing, auto update, and release packaging are not yet implemented.
+- Deployment: framework-dependent local Windows desktop app. The unsigned x64 WiX MSI requires .NET 10 Desktop Runtime x64 and does not bundle it; signing, auto update, and external release publishing remain deferred.
 
 ## Current Project Status
 
-The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
+The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, advanced read-only Windows diagnostics for firewall profiles, localhost bind health, Code Integrity events, and Smart App Control state, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
-The next development phase should focus on approved installation-plan design, installer/signing decisions, and eventual WPF automation or ViewModel extraction.
+The next development phase should focus on installer/signing decisions and eventual WPF automation or ViewModel extraction.
 
 ## Known Constraints
 

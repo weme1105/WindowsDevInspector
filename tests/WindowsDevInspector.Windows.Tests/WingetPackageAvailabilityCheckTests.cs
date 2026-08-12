@@ -10,7 +10,7 @@ public sealed class WingetPackageAvailabilityCheckTests
         FakeCommandRunner commandRunner = new(new CommandRunResult
         {
             FileName = "winget",
-            Arguments = "show --id pnpm.pnpm --exact --accept-source-agreements",
+            Arguments = "show --id pnpm.pnpm --exact --source winget --accept-source-agreements --disable-interactivity",
             ExitCode = 0,
             StandardOutput = """
                 Found pnpm [pnpm.pnpm]
@@ -33,7 +33,7 @@ public sealed class WingetPackageAvailabilityCheckTests
         Assert.False(result.CanFix);
         Assert.Equal("winget package id: pnpm.pnpm", result.ExpectedValue);
         Assert.Equal("winget", commandRunner.FileName);
-        Assert.Equal("show --id pnpm.pnpm --exact --accept-source-agreements", commandRunner.Arguments);
+        Assert.Equal("show --id pnpm.pnpm --exact --source winget --accept-source-agreements --disable-interactivity", commandRunner.Arguments);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class WingetPackageAvailabilityCheckTests
             new FakeCommandRunner(new CommandRunResult
             {
                 FileName = "winget",
-                Arguments = "show --id Hashicorp.Terraform --exact --accept-source-agreements",
+                Arguments = "show --id Hashicorp.Terraform --exact --source winget --accept-source-agreements --disable-interactivity",
                 ExitCode = 1,
                 StandardError = "No package found matching input criteria."
             }));
@@ -71,7 +71,7 @@ public sealed class WingetPackageAvailabilityCheckTests
             new FakeCommandRunner(new CommandRunResult
             {
                 FileName = "winget",
-                Arguments = "show --id pnpm.pnpm --exact --accept-source-agreements",
+                Arguments = "show --id pnpm.pnpm --exact --source winget --accept-source-agreements --disable-interactivity",
                 ErrorMessage = "The system cannot find the file specified."
             }));
 
@@ -93,7 +93,7 @@ public sealed class WingetPackageAvailabilityCheckTests
             new FakeCommandRunner(new CommandRunResult
             {
                 FileName = "winget",
-                Arguments = "show --id Microsoft.AzureCLI --exact --accept-source-agreements",
+                Arguments = "show --id Microsoft.AzureCLI --exact --source winget --accept-source-agreements --disable-interactivity",
                 TimedOut = true
             }));
 

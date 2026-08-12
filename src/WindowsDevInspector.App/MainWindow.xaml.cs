@@ -17,6 +17,9 @@ public partial class MainWindow : Window
         BuiltInEnvironmentCheckFactory.CreateAll());
     private readonly RemediationCoordinator remediationCoordinator = new();
     private readonly ScanReportExporter scanReportExporter = new();
+    private readonly ApprovedInstallationCatalog installationCatalog = BuiltInInstallationCatalog.Create();
+    private readonly PackageInstallationCoordinator packageInstallationCoordinator = new();
+    private PackageInstallationConfirmation? selectedInstallationConfirmation;
 
     public MainWindow()
     {
@@ -37,6 +40,9 @@ public partial class MainWindow : Window
                 Impact = "目前已可由技術 ID 解析去重後的檢查清單。"
             })
         };
+#if DEBUG
+        AddDebugActionRows();
+#endif
 
         DataContext = this;
         RefreshBackupFiles();
@@ -141,6 +147,8 @@ public partial class MainWindow : Window
 
     private async Task RunScanAsync()
     {
+        selectedInstallationConfirmation = null;
+        StartInstallationButton.IsEnabled = false;
         string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
         int scanConcurrency = ScanConcurrencySettings.Clamp(SelectedScanConcurrency);
@@ -155,9 +163,20 @@ public partial class MainWindow : Window
             Results.Add(new CheckResultRow(result));
         }
 
-        ScoreTextBlock.Text = FormatScore(scanResult.Score);
+        ApplyInstallationCandidates();
+#if DEBUG
+        AddDebugActionRows();
+#endif
+        bool runtimeReady = RuntimePrerequisiteSelection.Apply(Results);
+        SetRemediationButtonsEnabled(runtimeReady);
 
-        ScanStatusTextBlock.Text = $"已掃描 {Results.Count} 個檢查，併發數 {scanConcurrency}";
+        ScoreTextBlock.Text = FormatScore(scanResult.Score);
+        ScanStatusTextBlock.Foreground = runtimeReady
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x22, 0x51, 0xA4))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xC6, 0x28, 0x28));
+        ScanStatusTextBlock.Text = runtimeReady
+            ? $"已掃描 {Results.Count} 個檢查，併發數 {scanConcurrency}"
+            : $"已掃描 {Results.Count} 個檢查；{RuntimePrerequisiteSelection.BlockReason}";
     }
     private void FixAllButton_Click(object sender, RoutedEventArgs e)
     {
@@ -166,6 +185,145 @@ public partial class MainWindow : Window
         ScanStatusTextBlock.Text = selectedCount == 0
             ? "沒有低風險且已支援的修正項目可勾選"
             : $"已批次勾選 {selectedCount} 個低風險且已支援的修正項目";
+    }
+
+    private void ResultActionCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox
+            || checkBox.DataContext is not CheckResultRow result)
+        {
+            return;
+        }
+
+        if (result.InstallationCandidate is not PackageInstallationCandidate candidate)
+        {
+            result.IsSelectedForFix = checkBox.IsChecked == true;
+            return;
+        }
+
+        if (result.IsSelectedForInstallation)
+        {
+            PackageInstallationSelection.Clear(Results);
+            selectedInstallationConfirmation = null;
+            StartInstallationButton.IsEnabled = false;
+            SetRemediationButtonsEnabled(true);
+            ScanStatusTextBlock.Text = "已取消安裝規劃選取；系統未變更";
+            return;
+        }
+
+        PackageInstallationConfirmationBuildResult previewResult =
+            packageInstallationCoordinator.CreatePreview([candidate.ToPlanItem()]);
+        if (!previewResult.IsValid || previewResult.Confirmation is null)
+        {
+            PackageInstallationSelection.Clear(Results);
+            selectedInstallationConfirmation = null;
+            StartInstallationButton.IsEnabled = false;
+            SetRemediationButtonsEnabled(true);
+            ScanStatusTextBlock.Text = $"無法建立安裝規劃：{string.Join("; ", previewResult.Errors)}";
+            return;
+        }
+
+        string warningMessage = string.Join(Environment.NewLine,
+        [
+            previewResult.Confirmation.Message,
+            "",
+            "安全提醒：套件安裝可能修改 Program Files、PATH、shims 或其他系統設定，未來執行時可能要求 UAC。",
+            "確認後會清除既有 remediation 勾選，並暫停其他 remediation 與安裝規劃操作。",
+            "目前只會保留單一選取並顯示預覽，不會下載、安裝或修改系統。",
+            "",
+            "是否將此套件加入目前的安裝規劃預覽？"
+        ]);
+
+        bool accepted = MessageBox.Show(
+            warningMessage,
+            "套件安裝規劃安全提醒",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) == MessageBoxResult.Yes;
+
+        if (!accepted)
+        {
+            PackageInstallationSelection.Clear(Results);
+            selectedInstallationConfirmation = null;
+            StartInstallationButton.IsEnabled = false;
+            SetRemediationButtonsEnabled(true);
+            ScanStatusTextBlock.Text = "已取消安裝規劃選取；系統未變更";
+            return;
+        }
+
+        PackageInstallationSelection.SelectSingle(Results, result);
+        selectedInstallationConfirmation = previewResult.Confirmation;
+        StartInstallationButton.IsEnabled = !result.IsSimulation;
+        SetRemediationButtonsEnabled(false);
+        ResultsListView.SelectedItem = result;
+        ScanStatusTextBlock.Text = result.IsSimulation
+            ? $"已選擇 {candidate.DisplayName} 的 Debug 預覽；禁止實際執行"
+            : $"已選擇 {candidate.DisplayName}；其他操作已停用，尚未開始安裝";
+    }
+
+    private async void StartInstallationButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (selectedInstallationConfirmation is not PackageInstallationConfirmation confirmation)
+        {
+            ScanStatusTextBlock.Text = "尚未選擇有效的套件安裝項目";
+            return;
+        }
+
+        CheckResultRow? selectedRow = Results.SingleOrDefault(row => row.IsSelectedForInstallation);
+        if (selectedRow is null || selectedRow.IsSimulation)
+        {
+            StartInstallationButton.IsEnabled = false;
+            ScanStatusTextBlock.Text = "Debug 模擬項目禁止執行套件安裝";
+            return;
+        }
+
+        string message = string.Join(Environment.NewLine,
+        [
+            confirmation.Message,
+            "",
+            "安全提醒：這會啟動 UAC，並由 ElevatedWorker 執行上方唯一一條固定 winget 命令。",
+            "安裝可能修改 Program Files、PATH、shims 或其他系統設定。",
+            "不會使用 silent、override、強制版本或強制 scope；逾時為 5 分鐘。",
+            "失敗時不會自動解除安裝或回復套件造成的變更。",
+            "",
+            "是否確定開始安裝？"
+        ]);
+
+        if (MessageBox.Show(
+            message,
+            "確認執行套件安裝",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            ScanStatusTextBlock.Text = "已取消套件安裝；系統未變更";
+            return;
+        }
+
+        StartInstallationButton.IsEnabled = false;
+        ScanStatusTextBlock.Text = "等待 UAC 並執行套件安裝中...";
+
+        try
+        {
+            PackageInstallationExecutionResult result = await packageInstallationCoordinator
+                .ExecuteConfirmedAsync(confirmation);
+            await RunScanAsync();
+            selectedInstallationConfirmation = null;
+
+            ScanStatusTextBlock.Text = result.Succeeded
+                ? "套件安裝完成，已重新掃描"
+                : $"套件安裝未完成：{string.Join("; ", result.Errors.Concat(result.Results.Select(item => item.Message)))}";
+        }
+        catch (OperationCanceledException)
+        {
+            ScanStatusTextBlock.Text = "套件安裝已取消或 UAC 未被允許";
+        }
+        catch (IOException ex)
+        {
+            ScanStatusTextBlock.Text = $"套件安裝失敗：{ex.Message}";
+        }
+        finally
+        {
+            SetRemediationButtonsEnabled(true);
+        }
     }
 
     private async void StartFixButton_Click(object sender, RoutedEventArgs e)
@@ -328,6 +486,76 @@ public partial class MainWindow : Window
         BackupComboBox.SelectedIndex = BackupFiles.Count > 0 ? 0 : -1;
         RestoreLatestBackupButton.IsEnabled = BackupFiles.Count > 0;
     }
+
+    private void ApplyInstallationCandidates()
+    {
+        PackageInstallationCandidateSelector selector = new(installationCatalog);
+        IReadOnlyDictionary<string, PackageInstallationCandidate> candidates = selector
+            .GetCandidates(Results)
+            .ToDictionary(candidate => candidate.DiagnosticCheckId, StringComparer.OrdinalIgnoreCase);
+
+        foreach (CheckResultRow result in Results)
+        {
+            result.SetInstallationCandidate(
+                candidates.TryGetValue(result.Id, out PackageInstallationCandidate? candidate)
+                    ? candidate
+                    : null);
+        }
+    }
+
+#if DEBUG
+    private void AddDebugActionRows()
+    {
+        Results.Add(new CheckResultRow(
+            new CheckResult
+            {
+                Id = "debug.remediation-preview",
+                Category = "DEBUG",
+                Name = "[DEBUG] 模擬修正",
+                Severity = CheckSeverity.Warning,
+                CurrentValue = "模擬目前狀態；不會執行真實 remediation",
+                ExpectedValue = "驗證修正 checkbox、勾選與反灰行為",
+                Impact = "僅供 Debug UI 測試；執行選取時會被安全排除。",
+                CanFix = true,
+                Risk = RiskLevel.Low,
+                RequiresElevation = false,
+                RequiresRestart = false,
+                SupportsRollback = false,
+                RemediationId = "create-source-directory"
+            },
+            isSimulation: true));
+
+        ApprovedInstallationPackage package = installationCatalog.GetRequired(
+            "Hashicorp.Terraform",
+            InstallationSource.Winget);
+        CheckResultRow installationRow = new(
+            new CheckResult
+            {
+                Id = "debug.installation-preview",
+                Category = "DEBUG",
+                Name = "[DEBUG] 模擬套件安裝",
+                Severity = CheckSeverity.Warning,
+                CurrentValue = "模擬 CLI 未安裝；不會執行 winget",
+                ExpectedValue = "驗證紅色安裝、安全提醒與互斥反灰行為",
+                Impact = "僅供 Debug UI 預覽；不會下載、安裝或修改系統。",
+                CanFix = false,
+                Risk = RiskLevel.None
+            },
+            isSimulation: true);
+        installationRow.SetInstallationCandidate(new PackageInstallationCandidate
+        {
+            DiagnosticCheckId = installationRow.Id,
+            PackageId = package.PackageId,
+            DisplayName = $"{package.DisplayName}（DEBUG 模擬）",
+            Source = package.Source,
+            Action = InstallationAction.Install,
+            Risk = package.Risk,
+            CurrentValue = installationRow.FullCurrentValue,
+            Impact = installationRow.Impact
+        });
+        Results.Add(installationRow);
+    }
+#endif
 
     private void SetRemediationButtonsEnabled(bool isEnabled)
     {

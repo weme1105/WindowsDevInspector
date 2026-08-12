@@ -15,6 +15,15 @@
 | DEC-009 | Use `mvp` as the integration branch before `main` | Accepted | 2026-07-31 |
 | DEC-010 | Use explicit technology selection instead of independent role selection | Accepted | 2026-07-31 |
 | DEC-011 | Keep Phase 4 package planning read-only until install plans are approved | Accepted | 2026-07-31 |
+| DEC-012 | Keep TASK focused on active handoff state | Accepted | 2026-08-04 |
+| DEC-013 | Derive installation execution metadata from an approved package catalog | Accepted | 2026-08-12 |
+| DEC-014 | Keep package execution behind two disabled gates | Accepted | 2026-08-12 |
+| DEC-015 | Enable controlled single-package installation through ElevatedWorker | Accepted | 2026-08-12 |
+| DEC-016 | Verify installed CLI from refreshed process PATH | Accepted | 2026-08-12 |
+| DEC-017 | Use unsigned WiX v5 MSI without bundled third-party tools | Accepted | 2026-08-12 |
+| DEC-018 | Hide installation actions until exact winget package availability passes | Accepted | 2026-08-12 |
+| DEC-019 | Framework-dependent deployment with a required .NET 10 Desktop Runtime | Accepted | 2026-08-12 |
+| DEC-020 | Retain versioned MSI files as GitHub Release assets | Accepted | 2026-08-13 |
 
 ---
 
@@ -69,7 +78,7 @@ A separate worker creates an auditable process boundary and keeps privileged beh
 
 ### Follow-up Actions
 
-- [ ] Move worker launch orchestration out of `MainWindow.xaml.cs`.
+- [x] Move worker launch orchestration out of `MainWindow.xaml.cs`.
 
 ---
 
@@ -174,7 +183,7 @@ A catalog separates user-facing technology grouping from executable diagnostics.
 
 ### Follow-up Actions
 
-- [ ] Add consistency tests for documented check IDs versus executable check IDs.
+- [x] Add catalog/factory consistency tests for current Core check IDs versus executable check IDs.
 
 ---
 
@@ -395,7 +404,7 @@ Small App-layer services provide immediate testability while preserving the curr
 
 ### Follow-up Actions
 
-- [ ] Add a WPF smoke-test checklist or UI automation strategy.
+- [x] Add a WPF smoke-test checklist and staged UI automation strategy.
 - [ ] Continue moving UI state into ViewModels when behavior stabilizes.
 
 ---
@@ -467,9 +476,33 @@ mvp = MVP integration and validation branch
 feature/<task-name> = focused development branch
 ```
 
-Feature work should branch from the latest `mvp` and open PRs back into `mvp`.
+Feature work must branch from the latest active integration branch and open PRs back into that same integration branch.
+
+For MVP work:
+
+```text
+main
+  -> mvp
+      -> feature/<task-name>
+      -> PR back to mvp
+```
+
+For later production release work:
+
+```text
+main or master
+  -> prd/<version>
+      -> feature/<task-name>
+      -> PR back to prd/<version>
+```
+
+Do not continue new feature work on a feature branch after its PR has been merged. A merged feature branch is closed for new work. Start the next task from the current integration branch instead.
 
 After MVP validation is complete, open a separate PR from `mvp` into `main`.
+
+When a production release branch is ready to update the stable line, open a PR from `prd/<version>` into `main` or `master`.
+
+CI should run for pull requests that target a mainline branch (`mvp` or `main`) and for pushes to those mainline branches after merge. Feature branch pushes do not need CI by default; a feature branch should be validated when it opens or updates a PR into a mainline branch.
 
 ### Rationale
 
@@ -482,16 +515,21 @@ This keeps `main` reserved for validated states while letting the MVP branch col
 - `main` remains stable.
 - MVP validation can happen before promotion.
 - Feature PR targets are consistent.
+- Feature branch pushes do not spend CI time until they are proposed for a mainline branch.
+- Merged feature branches do not accumulate unrelated future work.
+- Production release branches can stabilize independently before updating `main` or `master`.
 
 #### Negative
 
 - Work must be kept synchronized with `mvp`.
 - PR base branches need to be checked before creation.
+- Mistaken work on an already merged feature branch must be moved to a new feature branch from the current integration branch, normally by cherry-picking the relevant commits.
 
 ### Follow-up Actions
 
 - [ ] Keep draft feature PRs targeted at `mvp` unless the task is a hotfix for `main`.
 - [ ] Promote `mvp` to `main` only after build, tests, and manual MVP validation pass.
+- [ ] For PRD releases, branch `prd/<version>` from `main` or `master`, merge feature PRs into that PRD branch, and merge PRD back to the stable line only when releasing.
 
 ---
 
@@ -589,3 +627,303 @@ The app should not require a tool to be on the newest available package version.
 - Check catalog
 - Future remediation design
 - Security
+
+---
+
+## DEC-012: Keep TASK Focused on Active Handoff State
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-04
+
+### Context
+
+`docs/TASK.md` was originally used to preserve state across Codex conversations, but its Completed section accumulated a long implementation history. That makes the current objective, blockers, verification, and next action harder to find and duplicates information already available from Git, pull requests, tests, release notes, and durable decision records.
+
+### Decision
+
+At handoff, keep `docs/TASK.md` focused on current work and the next actionable slice.
+
+- Move completed work that creates a durable architecture, security, technology, product, compatibility, deployment, or workflow decision into `docs/DECISION.md` before removing it from `docs/TASK.md`.
+- Do not represent routine implementation history as a decision. Remove routine completed items after confirming durable evidence in Git, pull requests, tests, or release notes.
+- If complete historical retention is explicitly required, use a separate Completed Work Archive section rather than mixing routine work into the decision index.
+- Update Current Objective, In Progress, blockers, remaining work, known issues, latest verification, and Next Recommended Task during every handoff.
+- Update `docs/AI_CONTEXT.md` only when stable technical context changes.
+
+The reusable execution workflow is provided by the personal `prepare-project-handoff` Skill.
+
+### Consequences
+
+#### Positive
+
+- New conversations can identify the current state and next step quickly.
+- Decision history retains rationale instead of becoming a generic completion log.
+- Routine implementation history remains available from its authoritative evidence.
+
+#### Negative
+
+- Handoff requires classifying completed work before removing it from TASK.
+- Existing historical Completed entries require a one-time cleanup pass.
+
+### Impacted Areas
+
+- Repository Agent rules
+- TASK handoff process
+- Decision records
+- AI context maintenance
+
+---
+
+## DEC-013: Derive Installation Execution Metadata from an Approved Package Catalog
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Context
+
+Package installation can modify installed programs, PATH, shims, and machine configuration. Allowing the UI to provide package commands, executable paths, arguments, or source URLs would broaden the trusted input boundary and make a plan difficult to audit.
+
+### Decision
+
+An installation plan contains only a GUID plan ID and typed items identifying an exact package ID, source, and action. `InstallationPlanValidator` accepts only packages represented by `BuiltInInstallationCatalog`, rejects unknown JSON fields and unsupported values, and limits plan size. Approved packages also map to an exact diagnostic check ID so App-layer candidate selection can derive installation choices only from known non-pass CLI diagnostics.
+
+Risk, elevation, restart, PATH refresh, verification executable, and verification arguments are trusted metadata owned by the approved catalog. They are not accepted from UI-authored plan items.
+
+This schema and validator do not execute installations. Package installation remains disabled until a separate execution design and approval gate are completed.
+
+### Consequences
+
+#### Positive
+
+- Installation intent is narrow and auditable.
+- Arbitrary commands, executables, arguments, sources, and package IDs are excluded from the plan contract.
+- Confirmation and future execution can use one trusted metadata source.
+- Passing and unrelated diagnostics do not become installation candidates.
+
+#### Negative
+
+- Adding or changing an installable package requires a reviewed catalog change.
+- The current schema supports only winget and the install action.
+
+### Impacted Areas
+
+- Remediation
+- Future App confirmation flow
+- Future ElevatedWorker installation flow
+- Security
+- Testing
+
+## DEC-014: Keep Package Execution Behind Two Disabled Gates
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Context
+
+Installation plans and UI previews now exist, but enabling a real process runner before agreement, elevation, scope, timeout, verification, and non-rollback behavior are approved would cross the read-only planning boundary.
+
+### Decision
+
+`PackageInstallationExecutor` requires both `PackageInstallationExecutorOptions.ExecutionEnabled` and an injected `IPackageInstallationProcessRunner`. The option defaults to `false`, and the only built-in runner is `DisabledPackageInstallationProcessRunner`, which never starts a process.
+
+The shared command preview is limited to fixed tokens derived from the approved catalog:
+
+```text
+winget install --id <approved-package-id> --exact --source winget
+```
+
+The preview intentionally excludes agreement acceptance, silent mode, version, scope, override, and arbitrary arguments until those policies are explicitly approved.
+
+### Consequences
+
+- Valid plans can be exercised through result and preview models without changing the workstation.
+- UI and executor previews share one builder and cannot silently drift.
+- Enabling the option alone is insufficient because the built-in runner remains disabled.
+- A real runner and ElevatedWorker routing require a separate approved change.
+
+### Impacted Areas
+
+- Remediation
+- App confirmation
+- Future ElevatedWorker installation flow
+- Security
+- Testing
+
+---
+
+## DEC-015: Enable Controlled Single-Package Installation Through ElevatedWorker
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Decision
+
+Enable only one approved package per installation plan. App first creates a preview and disables competing actions; a separate red execution button requires a second explicit safety confirmation before launching ElevatedWorker with `--install` and UAC.
+
+ElevatedWorker validates the plan again and permits only this fixed-token command:
+
+```text
+winget install --id <approved-package-id> --exact --source winget --accept-package-agreements --accept-source-agreements
+```
+
+The runner uses `ProcessStartInfo.ArgumentList`, a five-minute timeout, and process-tree termination for timeout or cancellation. It does not add silent, override, forced scope, or forced version flags. Failure does not trigger automatic uninstall or rollback. Debug simulation rows remain non-executable.
+
+### Compatibility
+
+The `--install <installation-plan.json> [result.json]` form is additive. Existing `<change-plan.json> [result.json]` and `--rollback <backup.json> [result.json]` forms remain supported. Invalid input returns exit code 2 for usage, 3 for unreadable JSON, 4 for rejected plans, and 6 for an attempted installation that did not succeed.
+
+### Consequences
+
+- App never executes winget directly.
+- Package identity and all execution tokens remain catalog/worker-owned.
+- Post-install PATH refresh and CLI verification are implemented by DEC-016.
+
+---
+
+## DEC-016: Verify Installed CLI From Refreshed Process PATH
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Decision
+
+After winget reports success, ElevatedWorker refreshes only its current process PATH by combining current machine and user PATH values. It does not write persistent environment variables. The worker then resolves the approved package catalog's verification executable and runs its fixed arguments with a 30-second timeout. Native executables run directly; `.cmd`/`.bat` shims use the system `cmd.exe` with a fixed wrapper and reject catalog arguments containing shell metacharacters.
+
+Verification success is required for the overall package-installation result to be successful. Missing CLI, non-zero exit, or timeout preserves the fact that winget succeeded in the message but marks the structured item outcome as failed. Raw verification stdout/stderr is not returned to App.
+
+The `verification` result field is additive and optional so a new App can still deserialize results produced by an older Worker during a mixed-version transition.
+
+### Consequences
+
+- UI-authored plans cannot select a verification executable or arguments.
+- PATH refresh cannot persistently alter machine or user configuration.
+- Installation and verification have independent timeout/result semantics.
+
+---
+
+## DEC-017: Use Unsigned WiX v5 MSI Without Bundled Third-Party Tools
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Decision
+
+Use an unsigned WiX Toolset v5.0.2 SDK-style MSI project for the first installer slice. WiX v5 uses the MS-RL package and avoids the maintenance-fee policy introduced in WiX v6+. The per-machine MSI installs only WindowsDevInspector application output into Program Files, manages a per-user Start Menu shortcut, supports Major Upgrade/downgrade blocking, and leaves signing for a later release gate.
+
+The MSI must not bundle third-party developer tools, winget packages, a .NET Runtime installer, or certificate material. Generated MSI/CAB artifacts stay under ignored build output and are never committed.
+
+Every distributed MSI must also be retained as an immutable release artifact outside Git. Rebuilding another package at the same path/name does not replace the exact original source expected by Windows Installer repair; losing or overwriting that package can cause repair error 1706.
+
+### Consequences
+
+- Windows Installer owns rollback/uninstall for WindowsDevInspector product files and installer-created shortcut/registry metadata.
+- Third-party tool installation remains an independent, approved online winget operation through ElevatedWorker.
+- The first MSI is framework-dependent; runtime prerequisite versus self-contained deployment remains a later release decision.
+- CI validates the generated unsigned MSI database but does not publish or upload it as a release artifact.
+- Before external release, artifact storage must retain each exact signed/unsigned MSI by version and package identity for repair and support scenarios.
+
+---
+
+## DEC-018: Hide Installation Actions Until Exact Winget Package Availability Passes
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Decision
+
+Each approved package maps to a catalog-owned availability check. App exposes an installation candidate only when both the tool diagnostic is non-PASS and the matching current-scan availability check is PASS. The check uses an exact package ID, explicit `winget` source, accepted source agreements, and disabled interactivity.
+
+Missing winget, unresolved package ID, non-zero exit, or timeout means no installation action is shown. App does not fall back to arbitrary download URLs or alternate shell commands.
+
+### Consequences
+
+- Unsupported installations stay absent instead of failing after user selection.
+- Availability remains machine/source dependent and is refreshed by each scan.
+- Debug-only simulation rows remain exempt solely for UI smoke testing and cannot execute.
+
+---
+
+## DEC-019: Framework-dependent Deployment With a Required .NET 10 Desktop Runtime
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-12
+
+### Decision
+
+Production packaging remains framework-dependent. The MSI does not bundle or install a .NET Runtime. WiX `DotNetCompatibilityCheck` requires the x64 .NET 10 Desktop Runtime before a first install and displays a clear prerequisite message when compatibility fails.
+
+The same runtime diagnostic is a Common check in every App scan. It requires `Microsoft.WindowsDesktop.App` 10.x. If the runtime result is missing or non-PASS, all remediation and package-installation selections are cleared and disabled, and the App displays the prerequisite reason in red. This in-App gate protects version-mismatch and diagnostic-failure cases; a machine with no compatible runtime cannot launch the framework-dependent App, so the MSI gate remains authoritative for first installation.
+
+Installer payload authoring includes only root framework-dependent application output. MSI validation limits the expected payload size and rejects known runtime host files to prevent a stale self-contained publish directory from being bundled accidentally.
+
+### Consequences
+
+- The MSI remains small and contains no runtime installer or self-contained runtime payload.
+- Users must install the official .NET 10 Desktop Runtime x64 independently before first installation.
+- Runtime-dependent operations fail closed when the current scan cannot prove the prerequisite is ready.
+
+---
+
+## DEC-020: Retain Versioned MSI Files as GitHub Release Assets
+
+### Status
+
+Accepted
+
+### Date
+
+2026-08-13
+
+### Decision
+
+GitHub Releases is the canonical immutable storage for distributed MSI files. A pushed `vMAJOR.MINOR.PATCH` tag may create a prerelease only when the tagged commit is reachable from `main` or `mvp`. The workflow derives `WdiProductVersion` from the tag, restores, builds, tests, validates the MSI database, renames the asset to `WindowsDevInspector-<version>-win-x64.msi`, and publishes a matching `.sha256` file.
+
+The workflow refuses an existing release and never uses `gh release upload --clobber`. Repository-level immutable releases are enabled so published release tags and assets cannot be modified or deleted. MSI/CAB files remain ignored and are never committed to Git.
+
+Unsigned packages are explicitly labeled prerelease and not latest. Signing remains a separate external-release gate.
+
+### Consequences
+
+- Windows Installer repair can retrieve the exact original package associated with a released version.
+- A release tag cannot originate directly from an unmerged feature branch.
+- Publishing requires a deliberate version tag after branch integration and GitHub `contents: write` permission.
+- GitHub authentication and the enabled immutable-release repository setting must remain operational before the first tag is pushed.

@@ -46,6 +46,32 @@ public sealed class ResultFixSelectionTests
         Assert.Equal("create-source-directory", row.RemediationId);
     }
 
+    [Fact]
+    public void GetSelectedFixes_ExcludesDebugSimulationRows()
+    {
+        CheckResultRow simulation = new(
+            new CheckResult
+            {
+                Id = "debug.remediation-preview",
+                Category = "DEBUG",
+                Name = "Debug remediation",
+                Severity = CheckSeverity.Warning,
+                CurrentValue = "Simulation",
+                ExpectedValue = "Simulation only",
+                Impact = "Must not execute",
+                CanFix = true,
+                Risk = RiskLevel.Low,
+                RemediationId = "create-source-directory"
+            },
+            isSimulation: true);
+        simulation.IsSelectedForFix = true;
+
+        CheckResultRow[] selectedRows = ResultFixSelection.GetSelectedFixes([simulation]);
+
+        Assert.True(simulation.IsSelectedForFix);
+        Assert.Empty(selectedRows);
+    }
+
     private static CheckResultRow Row(
         CheckSeverity severity,
         bool canFix,

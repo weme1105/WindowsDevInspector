@@ -12,16 +12,23 @@ BackupFileService backupFileService = new(
     WindowsDevInspector.Remediation.MachineFingerprint.CreateFromMacAddresses());
 string? resultPath = null;
 
-if (args.Length is not 1 and not 2 and not 3)
+bool isRollback = args.Length > 0
+    && string.Equals(args[0], "--rollback", StringComparison.OrdinalIgnoreCase);
+bool isInstall = args.Length > 0
+    && string.Equals(args[0], "--install", StringComparison.OrdinalIgnoreCase);
+bool hasValidArguments = isRollback || isInstall
+    ? args.Length is 2 or 3
+    : args.Length is 1 or 2;
+
+if (!hasValidArguments)
 {
     WriteResult(WorkerExecutionResult.Failed(
         "unknown",
-        ["Usage: WindowsDevInspector.ElevatedWorker <change-plan.json> [result.json] OR --rollback <backup.json> [result.json]"]));
+        ["Usage: WindowsDevInspector.ElevatedWorker <change-plan.json> [result.json] OR --rollback <backup.json> [result.json] OR --install <installation-plan.json> [result.json]"]));
     return 2;
 }
 
-bool isRollback = string.Equals(args[0], "--rollback", StringComparison.OrdinalIgnoreCase);
-resultPath = isRollback
+resultPath = isRollback || isInstall
     ? args.Length == 3 ? args[2] : null
     : args.Length == 2 ? args[1] : null;
 
@@ -36,6 +43,11 @@ if (!Elevation.IsProcessElevated())
 if (isRollback)
 {
     return await RunRollbackAsync(args[1]);
+}
+
+if (isInstall)
+{
+    return await RunInstallationAsync(args[1]);
 }
 
 string planPath = args[0];
@@ -111,6 +123,20 @@ void WriteResult(WorkerExecutionResult result)
     File.WriteAllText(resultPath, json);
 }
 
+void WriteInstallationResult(PackageInstallationExecutionResult result)
+{
+    string json = JsonSerializer.Serialize(result, jsonOptions);
+
+    if (resultPath is null)
+    {
+        Console.WriteLine(json);
+        return;
+    }
+
+    Directory.CreateDirectory(Path.GetDirectoryName(resultPath)!);
+    File.WriteAllText(resultPath, json);
+}
+
 RemediationExecutionResult WriteBackupIfAvailable(
     string planId,
     RemediationExecutionResult executionResult)
@@ -166,4 +192,34 @@ async Task<int> RunRollbackAsync(string backupPath)
     });
 
     return rollbackResult.Succeeded ? 0 : 6;
+}
+
+async Task<int> RunInstallationAsync(string installationPlanPath)
+{
+    InstallationPlan? installationPlan;
+
+    try
+    {
+        await using FileStream stream = File.OpenRead(installationPlanPath);
+        installationPlan = await JsonSerializer.DeserializeAsync<InstallationPlan>(stream, jsonOptions);
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+    {
+        WriteInstallationResult(PackageInstallationExecutionResult.Invalid(
+            "unknown",
+            [$"Could not read installation plan: {ex.Message}"]));
+        return 3;
+    }
+
+    PackageInstallationExecutionResult result = await PackageInstallationWorkerHandler
+        .CreateDefault()
+        .ExecuteAsync(installationPlan, CancellationToken.None);
+    WriteInstallationResult(result);
+
+    if (result.Errors.Count > 0)
+    {
+        return 4;
+    }
+
+    return result.Succeeded ? 0 : 6;
 }

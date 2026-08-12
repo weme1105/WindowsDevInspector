@@ -3,12 +3,19 @@ using WindowsDevInspector.Core;
 
 namespace WindowsDevInspector.App;
 
-public sealed class CheckResultRow(CheckResult result) : INotifyPropertyChanged
+public sealed class CheckResultRow(CheckResult result, bool isSimulation = false) : INotifyPropertyChanged
 {
     private const int MaxCellLength = 160;
     private bool isSelectedForFix;
+    private bool isFixSelectionEnabled = true;
+    private PackageInstallationCandidate? installationCandidate;
+    private bool isSelectedForInstallation;
+    private bool isInstallationSelectionEnabled;
+    private string? actionBlockReason;
 
     public string Id { get; } = result.Id;
+
+    public bool IsSimulation { get; } = isSimulation;
 
     public string Severity { get; } = result.Severity.ToString();
 
@@ -59,6 +66,8 @@ public sealed class CheckResultRow(CheckResult result) : INotifyPropertyChanged
         && RemediationId is not null
         && Severity != CheckSeverity.Pass.ToString();
 
+    public bool IsFixSelectionEnabled => IsFixSelectable && isFixSelectionEnabled && actionBlockReason is null;
+
     public bool IsLowRiskLocalFix => IsFixSelectable
         && Risk == RiskLevel.Low
         && !RequiresElevation;
@@ -79,7 +88,80 @@ public sealed class CheckResultRow(CheckResult result) : INotifyPropertyChanged
 
             isSelectedForFix = normalizedValue;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForFix)));
+            NotifyActionPropertiesChanged();
         }
+    }
+
+    public PackageInstallationCandidate? InstallationCandidate => installationCandidate;
+
+    public bool IsInstallationCandidate => installationCandidate is not null;
+
+    public bool IsInstallationSelectionEnabled => isInstallationSelectionEnabled && actionBlockReason is null;
+
+    public bool IsSelectedForInstallation => isSelectedForInstallation;
+
+    public bool IsActionSelectable => IsInstallationCandidate || IsFixSelectable;
+
+    public bool IsActionSelectionEnabled => IsInstallationCandidate
+        ? IsInstallationSelectionEnabled
+        : IsFixSelectionEnabled;
+
+    public bool IsSelectedForAction => IsSelectedForInstallation || IsSelectedForFix;
+
+    public string ActionLabel => installationCandidate is not null ? "安裝" : "修正";
+
+    public string ActionForeground => installationCandidate is not null || actionBlockReason is not null ? "#C62828" : "#162033";
+
+    public string ActionToolTip => actionBlockReason ?? (installationCandidate is not null
+        ? "套件安裝規劃：一次只能選擇一個；確認後其他操作會反灰。"
+        : IsFixSelectable
+            ? "一般 remediation 修正；套件安裝規劃啟用時會暫停此操作。"
+            : string.Empty);
+
+    public void SetActionBlockReason(string? reason)
+    {
+        actionBlockReason = string.IsNullOrWhiteSpace(reason) ? null : reason;
+        if (actionBlockReason is not null)
+        {
+            isSelectedForFix = false;
+            isSelectedForInstallation = false;
+        }
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForFix)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForInstallation)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFixSelectionEnabled)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInstallationSelectionEnabled)));
+        NotifyActionPropertiesChanged();
+    }
+
+    public string InstallationPlanningText => installationCandidate is null
+        ? "Installation planning: unavailable"
+        : $"Installation planning: {installationCandidate.DisplayName} [{installationCandidate.PackageId}] via {installationCandidate.Source}";
+
+    public void SetInstallationCandidate(PackageInstallationCandidate? candidate)
+    {
+        installationCandidate = candidate;
+        isSelectedForInstallation = false;
+        isInstallationSelectionEnabled = candidate is not null;
+        NotifyInstallationPropertiesChanged();
+    }
+
+    internal void SetInstallationSelectionState(bool isSelected, bool isEnabled)
+    {
+        isSelectedForInstallation = IsInstallationCandidate && isSelected;
+        isInstallationSelectionEnabled = IsInstallationCandidate && isEnabled;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForInstallation)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInstallationSelectionEnabled)));
+        NotifyActionPropertiesChanged();
+    }
+
+    internal void SetFixSelectionState(bool isSelected, bool isEnabled)
+    {
+        isSelectedForFix = IsFixSelectable && isSelected;
+        isFixSelectionEnabled = isEnabled;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForFix)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFixSelectionEnabled)));
+        NotifyActionPropertiesChanged();
     }
 
     public string Impact { get; } = result.Impact;
@@ -112,5 +194,25 @@ public sealed class CheckResultRow(CheckResult result) : INotifyPropertyChanged
         return singleLine.Length <= MaxCellLength
             ? singleLine
             : string.Concat(singleLine.AsSpan(0, MaxCellLength), "...");
+    }
+
+    private void NotifyInstallationPropertiesChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InstallationCandidate)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInstallationCandidate)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsInstallationSelectionEnabled)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForInstallation)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InstallationPlanningText)));
+        NotifyActionPropertiesChanged();
+    }
+
+    private void NotifyActionPropertiesChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsActionSelectable)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsActionSelectionEnabled)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelectedForAction)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ActionToolTip)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ActionLabel)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ActionForeground)));
     }
 }

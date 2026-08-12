@@ -41,6 +41,8 @@ publish/
 *.snupkg
 *.msix
 *.msixbundle
+*.msi
+*.cab
 *.appx
 *.appxbundle
 
