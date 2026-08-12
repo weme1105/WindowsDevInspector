@@ -2,7 +2,7 @@
 
 ## MVP
 
-Status: validated locally.
+Status: `v0.1.0` published as an unsigned immutable GitHub prerelease.
 
 ### Highlights
 
@@ -23,7 +23,7 @@ Status: validated locally.
 ### Safety Model
 
 - Environment checks are read-only.
-- The app does not install tools in the MVP.
+- Package installation is limited to explicitly approved catalog entries and always requires preview, separate confirmation, UAC, and ElevatedWorker validation.
 - The app does not require installed tools to be the latest version.
 - Normal WPF app code does not directly write registry values, modify PATH, enable Windows features, install software, or run arbitrary administrator commands.
 - Privileged changes are constrained to approved remediation IDs and executed through the elevated worker boundary.
@@ -32,9 +32,10 @@ Status: validated locally.
 ### Validated
 
 - Release build passed with 0 warnings and 0 errors.
-- Release tests passed with 236 tests after the fail-closed package executor and shared command-preview slices.
-- WPF app launch smoke passed.
-- Manual WPF UI smoke checklist completed by the user.
+- Release and Debug builds passed with 0 warnings/errors; 285 tests passed in each configuration.
+- Release workflow restore, versioned build, tests, MSI validation, and immutable prerelease creation passed.
+- Published MSI SHA-256 was independently downloaded and matched the published checksum.
+- WPF App process smoke passed. The final Debug simulation-row visual checklist remains pending because the computer-use helper could not initialize.
 
 ### Known Limitations
 
@@ -48,15 +49,15 @@ Status: validated locally.
 - Windows Installer repair requires retention of the exact original MSI. Replacing an installed version's source package with a rebuild using a different PackageCode produced repair error 1706, so versioned release artifacts must be immutable.
 - Selected framework-dependent deployment: MSI requires .NET 10 Desktop Runtime x64 without bundling it, and App scans disable all modifying actions in red when the Common Runtime prerequisite is not PASS.
 - Hardened MSI payload validation against stale self-contained output by packaging only root application files, limiting payload count, and rejecting .NET runtime host binaries.
-- Added a tag-driven GitHub prerelease workflow that derives MSI version from `vMAJOR.MINOR.PATCH`, runs full validation, publishes a versioned MSI plus SHA-256, and refuses overwrite of an existing release.
+- Added a tag-driven GitHub prerelease workflow that derives MSI version from `vMAJOR.MINOR.PATCH`, runs full validation, publishes a versioned MSI plus SHA-256, and refuses overwrite of an existing release. A failed pre-publication run can safely retry the same unmoved tag through the default-branch workflow.
 - Centralized WPF modifying-action availability so failed Runtime prerequisites cannot be overwritten by workflow cleanup, and added pure state-policy regression tests.
 - Replaced ad hoc ElevatedWorker CLI mode parsing with typed command parsing/routing while preserving all existing argument forms, JSON contracts, usage behavior, and exit codes.
-- Code signing, auto update, and real install/upgrade/uninstall smoke validation are not implemented. The current unsigned MSI is for local/internal validation only.
+- Code signing and auto update are not implemented. The current unsigned MSI is a prerelease for local/internal validation only.
 - Automated validation does not yet include a Windows UI automation harness.
 - `docs/CHECK_CATALOG.md` contains planning rows that are not yet in the Core catalog.
 
 ### Recommended Next Work
 
-- Design approved installation plan schema before enabling package installation.
-- Add privacy/release artifacts to future packaged builds.
-- Decide code-signing and auto-update strategy before external release.
+- Complete the Debug simulation-row WPF visual smoke checklist.
+- Capture and inspect non-sensitive demo screenshots before committing image assets.
+- Decide code-signing and auto-update strategy before an external stable release.

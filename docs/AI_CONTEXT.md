@@ -105,6 +105,7 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - MSI repair requires the exact original package source. Versioned release MSI artifacts must be immutable and retained outside Git; rebuilding an MSI at the same path can change PackageCode and break repair source resolution.
 - GitHub Releases is the canonical MSI artifact store. A `vMAJOR.MINOR.PATCH` tag reachable from `main` or `mvp` builds a version-matched unsigned prerelease plus SHA-256 file; the workflow refuses existing releases and never overwrites assets. A failed pre-publication run may be retried with the explicit manual tag input without moving the existing tag.
 - Repository-level GitHub Immutable releases is enabled for `weme1105/WindowsDevInspector`; published release tags and assets cannot be modified or deleted.
+- `v0.1.0` is published as an unsigned immutable prerelease with a versioned x64 MSI and matching SHA-256 asset. The release workflow definition also lives on the default branch so an existing validated tag can be retried after a pre-publication workflow failure.
 - `MainWindowActionState` centrally derives modifying-control availability from Runtime readiness, busy state, installation mode, executable selection, and backup availability; workflow `finally` blocks must never directly re-enable controls.
 - ElevatedWorker CLI parsing/routing is typed through `WorkerCommandParser` and `WorkerCommandRouter`; remediation, `--rollback`, and `--install` contracts and exit-code behavior remain compatible.
 
