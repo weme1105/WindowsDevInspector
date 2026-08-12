@@ -2,11 +2,11 @@
 
 ## Current Objective
 
-Publish the controlled installation and framework-dependent packaging slice for review.
+Complete release-readiness refactoring and publish the first unsigned prerelease.
 
 ## In Progress
 
-Framework-dependent deployment and GitHub Release artifact retention are selected. Repository-level Immutable releases is enabled. A version tag on `main` or `mvp` builds a version-matched unsigned prerelease MSI plus SHA-256 without overwrite behavior. The test workstation remains uninstalled. No third-party tool installation was executed.
+Runtime-safe WPF action availability and typed ElevatedWorker CLI parsing/routing are implemented and validated on `refactor/release-readiness`. Existing Worker CLI and JSON contracts remain compatible. Integration into `mvp` and the deliberate `v0.1.0` prerelease tag remain in progress.
 
 ## Ready
 
@@ -46,7 +46,10 @@ Framework-dependent deployment and GitHub Release artifact retention are selecte
 - Installation planning tests include validator, candidate mapping, preview/coordinator, and independent single-selection behavior.
 - WPF visual smoke test was attempted again but not completed because computer-use initialization still fails with `EPERM: operation not permitted` before any window control begins.
 - Framework-dependent App tests passed 56/56 and Windows checks passed 120/120 after Runtime prerequisite gating. WiX MSI build passed with 0 warnings/errors; MSI validation confirmed x64 version 0.1.0, the .NET 10 Desktop Runtime launch condition, 12 payload files, and no bundled runtime host files.
+- Release and Debug solution builds passed with 0 warnings/errors after action-state and Worker CLI routing refactoring; all 285 tests passed in each configuration.
+- Release MSI validation passed for x64 version 0.1.0 with 12 payload files and no bundled software/runtime installers.
+- Debug App process smoke passed: the App created a main window, remained responsive, and closed without a leftover process. Full visual interaction remained unavailable because the computer-use helper failed initialization twice with `EPERM` before controlling any window.
 
 ## Next Recommended Task
 
-Review and merge the controlled installation slice into `mvp`; then deliberately push the first version tag from the merged commit when an unsigned prerelease is intended.
+Run complete Release/Debug/MSI/UI-smoke validation, merge the release-readiness slice into mvp, then publish the immutable v0.1.0 unsigned prerelease.

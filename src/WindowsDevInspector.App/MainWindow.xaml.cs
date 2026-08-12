@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly ScanReportExporter scanReportExporter = new();
     private readonly ApprovedInstallationCatalog installationCatalog = BuiltInInstallationCatalog.Create();
     private readonly PackageInstallationCoordinator packageInstallationCoordinator = new();
+    private readonly MainWindowActionState actionState = new();
     private PackageInstallationConfirmation? selectedInstallationConfirmation;
 
     public MainWindow()
@@ -87,6 +88,8 @@ public partial class MainWindow : Window
     private async void StartScanButton_Click(object sender, RoutedEventArgs e)
     {
         StartScanButton.IsEnabled = false;
+        actionState.SetBusy(true);
+        RefreshActionAvailability();
         ScanStatusTextBlock.Text = "掃描中...";
 
         try
@@ -95,6 +98,8 @@ public partial class MainWindow : Window
         }
         finally
         {
+            actionState.SetBusy(false);
+            RefreshActionAvailability();
             StartScanButton.IsEnabled = true;
         }
     }
@@ -148,7 +153,7 @@ public partial class MainWindow : Window
     private async Task RunScanAsync()
     {
         selectedInstallationConfirmation = null;
-        StartInstallationButton.IsEnabled = false;
+        actionState.SetInstallationSelection(isSelected: false, isExecutable: false);
         string[] selectedTechnologyIds = GetSelectedTechnologyIds();
 
         int scanConcurrency = ScanConcurrencySettings.Clamp(SelectedScanConcurrency);
@@ -168,7 +173,8 @@ public partial class MainWindow : Window
         AddDebugActionRows();
 #endif
         bool runtimeReady = RuntimePrerequisiteSelection.Apply(Results);
-        SetRemediationButtonsEnabled(runtimeReady);
+        actionState.SetRuntimeReady(runtimeReady);
+        RefreshActionAvailability();
 
         ScoreTextBlock.Text = FormatScore(scanResult.Score);
         ScanStatusTextBlock.Foreground = runtimeReady
@@ -205,8 +211,8 @@ public partial class MainWindow : Window
         {
             PackageInstallationSelection.Clear(Results);
             selectedInstallationConfirmation = null;
-            StartInstallationButton.IsEnabled = false;
-            SetRemediationButtonsEnabled(true);
+            actionState.SetInstallationSelection(isSelected: false, isExecutable: false);
+            RefreshActionAvailability();
             ScanStatusTextBlock.Text = "已取消安裝規劃選取；系統未變更";
             return;
         }
@@ -217,8 +223,8 @@ public partial class MainWindow : Window
         {
             PackageInstallationSelection.Clear(Results);
             selectedInstallationConfirmation = null;
-            StartInstallationButton.IsEnabled = false;
-            SetRemediationButtonsEnabled(true);
+            actionState.SetInstallationSelection(isSelected: false, isExecutable: false);
+            RefreshActionAvailability();
             ScanStatusTextBlock.Text = $"無法建立安裝規劃：{string.Join("; ", previewResult.Errors)}";
             return;
         }
@@ -244,16 +250,16 @@ public partial class MainWindow : Window
         {
             PackageInstallationSelection.Clear(Results);
             selectedInstallationConfirmation = null;
-            StartInstallationButton.IsEnabled = false;
-            SetRemediationButtonsEnabled(true);
+            actionState.SetInstallationSelection(isSelected: false, isExecutable: false);
+            RefreshActionAvailability();
             ScanStatusTextBlock.Text = "已取消安裝規劃選取；系統未變更";
             return;
         }
 
         PackageInstallationSelection.SelectSingle(Results, result);
         selectedInstallationConfirmation = previewResult.Confirmation;
-        StartInstallationButton.IsEnabled = !result.IsSimulation;
-        SetRemediationButtonsEnabled(false);
+        actionState.SetInstallationSelection(isSelected: true, isExecutable: !result.IsSimulation);
+        RefreshActionAvailability();
         ResultsListView.SelectedItem = result;
         ScanStatusTextBlock.Text = result.IsSimulation
             ? $"已選擇 {candidate.DisplayName} 的 Debug 預覽；禁止實際執行"
@@ -271,7 +277,8 @@ public partial class MainWindow : Window
         CheckResultRow? selectedRow = Results.SingleOrDefault(row => row.IsSelectedForInstallation);
         if (selectedRow is null || selectedRow.IsSimulation)
         {
-            StartInstallationButton.IsEnabled = false;
+            actionState.SetInstallationSelection(isSelected: false, isExecutable: false);
+            RefreshActionAvailability();
             ScanStatusTextBlock.Text = "Debug 模擬項目禁止執行套件安裝";
             return;
         }
@@ -298,7 +305,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        StartInstallationButton.IsEnabled = false;
+        actionState.SetBusy(true);
+        RefreshActionAvailability();
         ScanStatusTextBlock.Text = "等待 UAC 並執行套件安裝中...";
 
         try
@@ -322,7 +330,8 @@ public partial class MainWindow : Window
         }
         finally
         {
-            SetRemediationButtonsEnabled(true);
+            actionState.SetBusy(false);
+            RefreshActionAvailability();
         }
     }
 
@@ -350,7 +359,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        SetRemediationButtonsEnabled(false);
+        actionState.SetBusy(true);
+        RefreshActionAvailability();
         ScanStatusTextBlock.Text = "還原中...";
 
         try
@@ -373,7 +383,8 @@ public partial class MainWindow : Window
         }
         finally
         {
-            SetRemediationButtonsEnabled(true);
+            actionState.SetBusy(false);
+            RefreshActionAvailability();
         }
     }
 
@@ -417,7 +428,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        SetRemediationButtonsEnabled(false);
+        actionState.SetBusy(true);
+        RefreshActionAvailability();
         ScanStatusTextBlock.Text = "修正中...";
 
         try
@@ -470,7 +482,8 @@ public partial class MainWindow : Window
         }
         finally
         {
-            SetRemediationButtonsEnabled(true);
+            actionState.SetBusy(false);
+            RefreshActionAvailability();
         }
     }
 
@@ -484,7 +497,7 @@ public partial class MainWindow : Window
         }
 
         BackupComboBox.SelectedIndex = BackupFiles.Count > 0 ? 0 : -1;
-        RestoreLatestBackupButton.IsEnabled = BackupFiles.Count > 0;
+        RefreshActionAvailability();
     }
 
     private void ApplyInstallationCandidates()
@@ -557,11 +570,27 @@ public partial class MainWindow : Window
     }
 #endif
 
-    private void SetRemediationButtonsEnabled(bool isEnabled)
+    private void RefreshActionAvailability()
     {
-        StartFixButton.IsEnabled = isEnabled;
-        FixAllButton.IsEnabled = isEnabled;
-        RestoreLatestBackupButton.IsEnabled = isEnabled && BackupFiles.Count > 0;
+        MainWindowActionAvailability availability = actionState.Evaluate(BackupFiles.Count > 0);
+        StartFixButton.IsEnabled = availability.CanStartFix;
+        FixAllButton.IsEnabled = availability.CanSelectLowRiskFixes;
+        RestoreLatestBackupButton.IsEnabled = availability.CanRestoreBackup;
+        StartInstallationButton.IsEnabled = availability.CanStartInstallation;
+
+        foreach (CheckResultRow result in Results.Where(result => result.IsFixSelectable))
+        {
+            result.SetFixSelectionState(
+                isSelected: result.IsSelectedForFix,
+                isEnabled: availability.CanSelectRemediation);
+        }
+
+        foreach (CheckResultRow result in Results.Where(result => result.IsInstallationCandidate))
+        {
+            bool isEnabled = availability.CanSelectInstallation
+                && (!actionState.IsInstallationMode || result.IsSelectedForInstallation);
+            result.SetInstallationSelectionState(result.IsSelectedForInstallation, isEnabled);
+        }
     }
 
     private string[] GetSelectedTechnologyIds()

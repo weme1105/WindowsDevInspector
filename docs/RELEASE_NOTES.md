@@ -49,6 +49,8 @@ Status: validated locally.
 - Selected framework-dependent deployment: MSI requires .NET 10 Desktop Runtime x64 without bundling it, and App scans disable all modifying actions in red when the Common Runtime prerequisite is not PASS.
 - Hardened MSI payload validation against stale self-contained output by packaging only root application files, limiting payload count, and rejecting .NET runtime host binaries.
 - Added a tag-driven GitHub prerelease workflow that derives MSI version from `vMAJOR.MINOR.PATCH`, runs full validation, publishes a versioned MSI plus SHA-256, and refuses overwrite of an existing release.
+- Centralized WPF modifying-action availability so failed Runtime prerequisites cannot be overwritten by workflow cleanup, and added pure state-policy regression tests.
+- Replaced ad hoc ElevatedWorker CLI mode parsing with typed command parsing/routing while preserving all existing argument forms, JSON contracts, usage behavior, and exit codes.
 - Code signing, auto update, and real install/upgrade/uninstall smoke validation are not implemented. The current unsigned MSI is for local/internal validation only.
 - Automated validation does not yet include a Windows UI automation harness.
 - `docs/CHECK_CATALOG.md` contains planning rows that are not yet in the Core catalog.
