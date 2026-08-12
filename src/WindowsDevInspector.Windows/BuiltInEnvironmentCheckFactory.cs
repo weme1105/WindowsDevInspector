@@ -74,7 +74,17 @@ public static class BuiltInEnvironmentCheckFactory
             new CommandVersionCheck("mobile.flutter", "Mobile", "Flutter CLI", "flutter", "--version", commandRunner, TimeSpan.FromSeconds(8)),
             new CommandVersionCheck("mobile.swift-cli", "Mobile", "Swift CLI", "swift", "--version", commandRunner, failureSeverity: CheckSeverity.Info),
             new DotNetMauiWorkloadCheck(commandRunner),
-            new DotNetRuntimeCheck("desktop.dotnet-desktop-runtime", "Desktop", ".NET Desktop Runtime", "Microsoft.WindowsDesktop.App", commandRunner),
+            new DotNetRuntimeCheck(
+                "desktop.dotnet-desktop-runtime",
+                "Common",
+                ".NET 10 Desktop Runtime x64",
+                "Microsoft.WindowsDesktop.App",
+                commandRunner,
+                minimumMajorVersion: 10,
+                dotnetFileName: Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "dotnet",
+                    "dotnet.exe")),
             new CommandVersionCheck("desktop.vscode", "Desktop", "Visual Studio Code", "code", "--version", commandRunner),
             new CommandVersionCheck("desktop.windows-terminal", "Desktop", "Windows Terminal", "wt", "--version", commandRunner),
             new CommandVersionCheck("desktop.powershell", "Desktop", "Windows PowerShell", "powershell", "-NoProfile -Command $PSVersionTable.PSVersion.ToString()", commandRunner),

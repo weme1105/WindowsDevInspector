@@ -12,6 +12,9 @@
 6. Remediation 負責修正定義、預覽、備份、執行後驗證、Rollback 與白名單驗證。
 7. ElevatedWorker 是唯一允許以系統管理員權限執行修改的程式，並必須遵循 `SECURITY_RULES.md`。
 8. 新增、移除、重新命名 project 或改變分層責任時，必須在同一個變更中更新 `docs/PROJECT.md` 與本文件。
+8.1. Installer 只能封裝 WindowsDevInspector 自身輸出，不得內嵌第三方開發工具、winget package、.NET Runtime 安裝包或簽章私鑰；產生的 MSI/CAB 不得進入版本控制。
+8.2. 已發布或用於 lifecycle 測試的 MSI 必須以版本化、不可覆寫的 artifact 保存；不得用同路徑重新建置的不同 PackageCode 檔案取代 repair 所需的原始 MSI。
+8.3. 正式保存使用 GitHub Release assets。Release tag 必須為 `vMAJOR.MINOR.PATCH` 且位於 `main` 或 `mvp` 可到達的 commit；MSI 版本必須與 tag 一致並附 SHA-256。不得覆寫既有 Release 或 asset，未簽章版本只能標示為 prerelease。
 
 ## Development
 

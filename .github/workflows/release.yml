@@ -1,0 +1,102 @@
+name: Release MSI
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release-msi:
+    name: Build immutable MSI prerelease
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag and release branch
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          if ($tag -notmatch '^v(?<version>\d+\.\d+\.\d+)$') {
+            throw "Release tag must use vMAJOR.MINOR.PATCH: $tag"
+          }
+          $version = $Matches.version
+
+          git fetch origin main mvp
+          git merge-base --is-ancestor '${{ github.sha }}' origin/main
+          $isOnMain = $LASTEXITCODE -eq 0
+          git merge-base --is-ancestor '${{ github.sha }}' origin/mvp
+          $isOnMvp = $LASTEXITCODE -eq 0
+          if (-not ($isOnMain -or $isOnMvp)) {
+            throw 'Release tags must reference a commit reachable from main or mvp.'
+          }
+
+          $releaseLookup = gh api "repos/${{ github.repository }}/releases/tags/$tag" 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $tag already exists and must never be overwritten."
+          }
+          if ($releaseLookup -notmatch 'HTTP 404') {
+            throw "Could not prove release $tag is unused: $releaseLookup"
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore WindowsDevInspector.sln --configfile NuGet.Config
+
+      - name: Build versioned MSI
+        run: dotnet build WindowsDevInspector.sln --configuration Release --no-restore -p:WdiProductVersion=${{ steps.release.outputs.version }}
+
+      - name: Test
+        run: dotnet test WindowsDevInspector.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Validate and prepare immutable assets
+        id: assets
+        shell: pwsh
+        run: |
+          $version = '${{ steps.release.outputs.version }}'
+          $source = './installer/WindowsDevInspector.Installer/bin/x64/Release/WindowsDevInspector.msi'
+          ./scripts/Test-InstallerPackage.ps1 -MsiPath $source -ExpectedVersion $version
+
+          $releaseDirectory = './artifacts/release'
+          New-Item -ItemType Directory -Path $releaseDirectory -Force | Out-Null
+          $assetName = "WindowsDevInspector-$version-win-x64.msi"
+          $assetPath = Join-Path $releaseDirectory $assetName
+          Copy-Item -LiteralPath $source -Destination $assetPath
+          $checksumPath = "$assetPath.sha256"
+          $hash = (Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -LiteralPath $checksumPath -Encoding ascii -Value "$hash  $assetName"
+
+          "msi=$assetPath" >> $env:GITHUB_OUTPUT
+          "checksum=$checksumPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create non-overwritable prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create '${{ steps.release.outputs.tag }}' `
+            '${{ steps.assets.outputs.msi }}' `
+            '${{ steps.assets.outputs.checksum }}' `
+            --repo '${{ github.repository }}' `
+            --verify-tag `
+            --fail-on-no-commits `
+            --generate-notes `
+            --prerelease `
+            --latest=false `
+            --title "WindowsDevInspector ${{ steps.release.outputs.version }} (unsigned prerelease)"

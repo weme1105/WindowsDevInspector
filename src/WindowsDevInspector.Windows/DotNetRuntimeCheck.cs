@@ -8,7 +8,9 @@ public sealed class DotNetRuntimeCheck(
     string name,
     string runtimeName,
     ICommandRunner commandRunner,
-    TimeSpan? timeout = null) : IEnvironmentCheck
+    TimeSpan? timeout = null,
+    int? minimumMajorVersion = null,
+    string dotnetFileName = "dotnet") : IEnvironmentCheck
 {
     private readonly TimeSpan timeout = timeout ?? TimeSpan.FromSeconds(8);
 
@@ -17,7 +19,7 @@ public sealed class DotNetRuntimeCheck(
     public async Task<CheckResult> RunAsync(CancellationToken cancellationToken)
     {
         CommandRunResult result = await commandRunner.RunAsync(
-            "dotnet",
+            dotnetFileName,
             "--list-runtimes",
             timeout,
             cancellationToken);
@@ -25,6 +27,7 @@ public sealed class DotNetRuntimeCheck(
         string[] matchingRuntimes = result.Succeeded
             ? SplitLines(result.StandardOutput)
                 .Where(line => line.StartsWith(runtimeName, StringComparison.OrdinalIgnoreCase))
+                .Where(line => minimumMajorVersion is null || HasMinimumMajorVersion(line, minimumMajorVersion.Value))
                 .ToArray()
             : [];
 
@@ -37,13 +40,23 @@ public sealed class DotNetRuntimeCheck(
             Name = name,
             Severity = found ? CheckSeverity.Pass : CheckSeverity.Info,
             CurrentValue = found ? string.Join(Environment.NewLine, matchingRuntimes) : FailureMessage(result),
-            ExpectedValue = $"{runtimeName} listed by dotnet --list-runtimes",
+            ExpectedValue = minimumMajorVersion is null
+                ? $"{runtimeName} listed by dotnet --list-runtimes"
+                : $"{runtimeName} {minimumMajorVersion}.x x64 listed by dotnet --list-runtimes",
             Impact = found
                 ? "The runtime is installed and visible to the dotnet CLI."
                 : "The runtime was not detected. Apps that require it may fail until the matching runtime or SDK workload is installed.",
             CanFix = false,
             Risk = RiskLevel.None
         };
+    }
+
+    private static bool HasMinimumMajorVersion(string line, int minimumMajorVersion)
+    {
+        string[] tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return tokens.Length >= 2
+            && Version.TryParse(tokens[1], out Version? version)
+            && version.Major >= minimumMajorVersion;
     }
 
     private static string FailureMessage(CommandRunResult result)

@@ -13,6 +13,12 @@
 7. 「開始修正」只執行目前勾選的修正。
 8. 修正前顯示 UAC、白名單、備份、風險、重開機與 Rollback 資訊。
 9. 修正或 Rollback 後重新掃描。
+10. Package installation candidates and remediation share one `操作` column. Each row shows one checkbox labeled `修正` or red `安裝` according to its action type.
+11. Only one package installation candidate may be selected at a time. After confirmation, other package candidates and all remediation checkboxes are disabled until the installation selection is cleared.
+12. Selecting an installation candidate must show its approved package ID, source, action, risk, UAC, restart, PATH refresh, post-install verification, and a warning that installation may modify system state.
+13. Cancelling the warning clears only the pending installation selection and preserves existing remediation selections. Accepting it clears existing remediation selections and creates only a read-only preview; it must not start winget, request UAC, or modify the system.
+14. Debug builds add exactly one simulated remediation row and one simulated installation row for UI verification. The simulated remediation row must be excluded from execution, and Release builds must not insert either row.
+15. Every scan includes the .NET 10 Desktop Runtime x64 prerequisite. If it is missing, incompatible, or cannot be verified, every remediation and installation checkbox plus modifying action button is disabled, any pending action selection is cleared, and the reason is shown in red.
 
 ## When to run the smoke test
 
@@ -47,6 +53,13 @@ dotnet run --project src\WindowsDevInspector.App\WindowsDevInspector.App.csproj
 - Report export 建立 JSON 並顯示清楚的成功或失敗訊息。
 - 沒有 backup 時，backup browser 不會 crash，Rollback control 不可用或說明原因。
 - 選取 backup 啟動 Rollback 前，顯示 UAC、backup validation、approved target 與 rescan context。
+- Non-pass CLI diagnostics with an approved package show a red `安裝` checkbox in the shared `操作` column; supported remediation rows show `修正` in the same column.
+- Selecting one installation candidate shows the safety warning; cancelling leaves candidates enabled and preserves existing remediation selections.
+- Accepting one candidate keeps it selected, clears existing remediation selections, disables the other installation candidates, and disables every remediation checkbox and remediation action button.
+- Clearing the selected installation candidate re-enables the other candidates and remediation controls.
+- Installation planning never starts winget, requests UAC, or changes package state.
+- In a Debug build, `[DEBUG] 模擬修正` and `[DEBUG] 模擬套件安裝` appear once each before and after scans; verify the unified action column without approving or executing a real change.
+- A non-PASS or missing Runtime prerequisite clears and disables both Debug and real action rows and displays the red Runtime requirement; a PASS result restores normal action eligibility.
 
 ## Safety during manual testing
 

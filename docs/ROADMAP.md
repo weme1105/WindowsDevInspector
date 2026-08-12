@@ -47,14 +47,32 @@
 ## Phase 4：工具安裝
 
 - [x] Read-only winget package availability checks
-- [ ] winget abstraction for future installation plans
+- [x] Approved winget package catalog and installation plan validator
+- [x] Read-only installation candidate and confirmation preview flow
+- [x] Single-selection installation candidate UI with safety preview
+- [x] Fail-closed installation executor shell and shared fixed command preview
+- [x] Approved ElevatedWorker single-package winget execution policy and runner
 - [ ] PowerShell 7 package planning
 - [x] pnpm package planning
 - [x] Azure CLI package planning
 - [x] kubectl package planning
 - [x] Terraform package planning
-- [ ] 安裝後 PATH refresh
-- [ ] 安裝後 CLI 可用性驗證
+- [x] 安裝後 process-local PATH refresh
+- [x] 安裝後 catalog-owned CLI 可用性驗證
+- [x] Hide installation candidates unless exact winget package availability passes
+
+## Phase 5：Installer
+
+- [x] Unsigned WiX v5 MSI project
+- [x] Major Upgrade and downgrade blocking authoring
+- [x] Program Files payload and Start Menu shortcut lifecycle
+- [x] Exclude third-party tools and generated MSI/CAB artifacts from source control
+- [x] Select framework-dependent deployment with a required .NET 10 Desktop Runtime x64 prerequisite
+- [x] Define GitHub Release assets and SHA-256 files as immutable MSI retention
+- [ ] Add code signing before external release
+- [x] Execute install/Major Upgrade/downgrade/uninstall/failure rollback smoke tests
+- [x] Verify uninstall preserves existing LocalAppData reports and remediation files
+- [ ] Configure immutable versioned MSI artifact retention
 - [ ] 舊版工具 Info 提示，不強制升級
 
 ## Phase 5：進階 Windows 診斷
@@ -76,7 +94,7 @@
 - [ ] MSIX / installer
 - [ ] Code signing
 - [ ] Auto update
-- [ ] Privacy statement
-- [ ] Release notes
+- [x] Privacy statement
+- [x] Release notes
 - [ ] Demo screenshots
 - [ ] Portfolio documentation

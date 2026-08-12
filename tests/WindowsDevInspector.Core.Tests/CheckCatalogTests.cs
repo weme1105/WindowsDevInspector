@@ -13,6 +13,8 @@ public sealed class CheckCatalogTests
 
         Assert.Contains(checks, check => check.Id == "common.windows-version");
         Assert.Contains(checks, check => check.Id == "common.git");
+        Assert.Contains(checks, check => check.Id == "desktop.dotnet-desktop-runtime"
+            && check.Category == "Common");
         Assert.Contains(checks, check => check.Id == "security.firewall-profiles");
         Assert.Contains(checks, check => check.Id == "security.code-integrity-events");
         Assert.Contains(checks, check => check.Id == "security.smart-app-control");

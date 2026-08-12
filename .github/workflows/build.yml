@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - feature-initial-checks
+      - mvp
   pull_request:
     branches:
       - main
-      - feature-initial-checks
+      - mvp
 
 jobs:
   build-test:
@@ -29,6 +29,10 @@ jobs:
 
       - name: Build
         run: dotnet build WindowsDevInspector.sln --configuration Release --no-restore
+
+      - name: Validate unsigned MSI contents
+        shell: pwsh
+        run: ./scripts/Test-InstallerPackage.ps1 -MsiPath ./installer/WindowsDevInspector.Installer/bin/x64/Release/WindowsDevInspector.msi
 
       - name: Test
         run: dotnet test WindowsDevInspector.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"

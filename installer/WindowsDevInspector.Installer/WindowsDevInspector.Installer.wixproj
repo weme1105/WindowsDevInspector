@@ -1,0 +1,19 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <WdiProductVersion Condition="'$(WdiProductVersion)' == ''">0.1.0</WdiProductVersion>
+    <DefineConstants>$(DefineConstants);WdiProductVersion=$(WdiProductVersion)</DefineConstants>
+    <OutputName>WindowsDevInspector</OutputName>
+    <AppOutputPath>$(MSBuildThisFileDirectory)..\..\src\WindowsDevInspector.App\bin\$(Configuration)\net10.0-windows\</AppOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Netfx.wixext" />
+    <ProjectReference Include="..\..\src\WindowsDevInspector.App\WindowsDevInspector.App.csproj"
+                      ReferenceOutputAssembly="false" />
+    <BindPath Include="$(AppOutputPath)" BindName="AppOutput" />
+  </ItemGroup>
+
+</Project>

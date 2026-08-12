@@ -172,7 +172,7 @@ public static class BuiltInCheckCatalog
             Check("mobile.flutter", "Flutter CLI", "Mobile"),
             Check("mobile.swift-cli", "Swift CLI", "Mobile"),
             Check("mobile.dotnet-maui", ".NET MAUI workload", "Mobile"),
-            Check("desktop.dotnet-desktop-runtime", ".NET Desktop Runtime", "Desktop"),
+            Check("desktop.dotnet-desktop-runtime", ".NET 10 Desktop Runtime x64", "Common", CheckSeverity.Warning),
             Check("desktop.windows-sdk", "Windows SDK", "Desktop"),
             Check("desktop.visualstudio", "Visual Studio", "Desktop"),
             Check("desktop.vscode", "Visual Studio Code", "Desktop"),

@@ -18,7 +18,7 @@ public sealed class WingetPackageAvailabilityCheck(
     {
         CommandRunResult runResult = await commandRunner.RunAsync(
             "winget",
-            $"show --id {packageId} --exact --accept-source-agreements",
+            $"show --id {packageId} --exact --source winget --accept-source-agreements --disable-interactivity",
             timeout,
             cancellationToken);
 

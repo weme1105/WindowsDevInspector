@@ -40,3 +40,28 @@ Worker 必須：
 - 啟用 Developer Mode。
 
 所有 remediation 必須透過明確白名單內的 remediation ID 執行，不得接受任意命令、Registry path 或 executable path。
+
+## Package Installation Planning
+
+Package installation is enabled only through the controlled ElevatedWorker route. Installation plans must:
+
+- Reference only an exact package ID and source present in `BuiltInInstallationCatalog`.
+- Use a supported typed action; the current schema permits only `Install`.
+- Derive risk, elevation, restart, PATH refresh, verification executable, and verification arguments from the approved catalog rather than UI input.
+- Contain exactly one item and reject unknown JSON properties, package IDs, sources, actions, invalid plan IDs, and additional items.
+- Never accept an executable, argument list, shell command, package source URL, or arbitrary version from the UI.
+- Be shown in App only when the matching catalog-owned `winget show --id <id> --exact --source winget --disable-interactivity` availability check returned PASS during the current scan. Missing winget, unresolved IDs, failures, and timeouts must hide the installation action.
+
+App selection only creates a preview. Execution requires a separate explicit confirmation, UAC, and ElevatedWorker `--install` invocation. The worker reconstructs and validates the fixed command contract before starting winget:
+
+`winget install --id <approved-package-id> --exact --source winget --accept-package-agreements --accept-source-agreements`
+
+The worker uses a five-minute timeout and kills the process tree on timeout or cancellation. Silent mode, override, forced scope/version, arbitrary arguments, automatic uninstall, and automatic rollback are prohibited. Debug simulation rows can never invoke installation.
+
+After a successful winget exit, the worker may refresh only its own process `PATH` from current machine and user environment values. It must not persist or rewrite user/machine PATH. CLI verification must use only the executable and argument tokens stored in `BuiltInInstallationCatalog`, use a 30-second timeout, and must not return raw stdout/stderr in the App-facing result. Native executables run directly. Catalog-owned `.cmd`/`.bat` shims may use only the system `cmd.exe` fixed wrapper; verification arguments containing shell metacharacters must be rejected.
+
+## MSI Packaging Boundary
+
+The WiX MSI may contain only WindowsDevInspector App, ElevatedWorker, their application dependencies, and MSI metadata/shortcuts. It must not bundle pnpm, Azure CLI, kubectl, Terraform, winget, a .NET Runtime installer, certificate private keys, or any other third-party software installer. Generated `.msi`/`.cab` files are build artifacts and must remain ignored by Git. The initial MSI is unsigned and intended only for local/internal validation.
+
+The MSI must remain framework-dependent and require the x64 .NET 10 Desktop Runtime through a compatibility launch condition. It must not recursively package runtime-specific publish directories. The App's Common runtime check must fail closed by clearing and disabling all remediation and package-installation actions whenever the prerequisite result is absent or non-PASS.

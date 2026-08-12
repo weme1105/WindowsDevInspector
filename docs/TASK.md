@@ -2,231 +2,52 @@
 
 ## Current Objective
 
-Keep the repository instruction and handoff documents concise, evidence-backed, and easy to continue across Codex conversations.
+Publish the controlled installation and framework-dependent packaging slice for review.
 
 ## In Progress
 
-No active implementation task. The reusable handoff workflow and its Repository rules have been defined; the existing Completed history still needs a one-time cleanup pass.
+Framework-dependent deployment and GitHub Release artifact retention are selected. A version tag on `main` or `mvp` builds a version-matched unsigned prerelease MSI plus SHA-256 without overwrite behavior. The test workstation remains uninstalled. No third-party tool installation was executed.
 
 ## Ready
 
-- [ ] Apply the `prepare-project-handoff` workflow to classify the existing Completed history, preserve durable decisions, and trim `docs/TASK.md` to active state only.
+- [ ] Complete the Debug simulation-row WPF smoke checklist when computer-use or manual verification is available.
+  - Confirm red installation text/button, single-selection disabling, two-stage confirmation, and non-executable Debug simulation behavior.
 
 ## Blocked
 
 - [ ] Installer, code signing, and auto update.
-  - Blocker: distribution strategy and signing certificate are not decided.
-  - Required decision: packaging and release strategy.
-
-## Completed
-
-- [x] Complete advanced Windows diagnostics and catalog gap slice.
-  - Completed: firewall profiles, localhost bind health, Code Integrity event query, and Smart App Control diagnostics are implemented as read-only checks. Electron, React Native, Swift, Flask package, pytest package, Rails gem, and Cargo CLI first-pass diagnostics are represented in Core catalog and executable factory. Security diagnostics now run as baseline checks.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Core/CheckCatalog.cs`, `src/WindowsDevInspector.Windows/FirewallProfilesCheck.cs`, `src/WindowsDevInspector.Windows/LocalhostBindHealthCheck.cs`, `src/WindowsDevInspector.Windows/CodeIntegrityEventsCheck.cs`, `src/WindowsDevInspector.Windows/SmartAppControlCheck.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`, `docs/ROADMAP.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build` (198 passed).
-
-- [x] Add reversible backup behavior for every approved remediation.
-  - Completed: local directory fixes now write encrypted backup records, directory rollback removes only tool-created directories that are still empty, registry rollback still goes through ElevatedWorker, elevated rollback process launching is testable through an injectable worker runner, and missing rollback result files are surfaced as worker failures.
-  - Related files: `src/WindowsDevInspector.App/RemediationCoordinator.cs`, `src/WindowsDevInspector.App/IWorkerProcessRunner.cs`, `src/WindowsDevInspector.App/WorkerProcessRunner.cs`, `src/WindowsDevInspector.Remediation/DirectoryBackup.cs`, `src/WindowsDevInspector.Remediation/DirectoryRollbackExecutor.cs`, `src/WindowsDevInspector.Remediation/BackupFileService.cs`, `src/WindowsDevInspector.Remediation/DpapiBackupProtector.cs`, `src/WindowsDevInspector.Remediation/MachineFingerprint.cs`, `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`, `src/WindowsDevInspector.Windows/DirectoryExistsCheck.cs`, `tests/WindowsDevInspector.App.Tests/RemediationCoordinatorTests.cs`, `tests/WindowsDevInspector.Remediation.Tests/DirectoryRollbackExecutorTests.cs`, `tests/WindowsDevInspector.Windows.Tests/DirectoryExistsCheckTests.cs`, `docs/AI_CONTEXT.md`, `docs/UI_RULES.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
-
-- [x] Add Windows baseline checks for version and processor architecture.
-  - Completed: Common baseline now includes executable read-only checks for Windows version/build and processor architecture.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Windows/WindowsVersionCheck.cs`, `src/WindowsDevInspector.Windows/ProcessorArchitectureCheck.cs`, `tests/WindowsDevInspector.Windows.Tests/WindowsVersionCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/ProcessorArchitectureCheckTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
-
-- [x] Add executable checks for all current Core catalog check IDs.
-  - Completed: added read-only executable checks for NuGet sources, Visual Studio Build Tools, browser availability, Android SDK, and .NET MAUI workload; added a catalog/factory consistency test so every current `BuiltInCheckCatalog.Create()` check ID has an executable `IEnvironmentCheck`.
-  - Related files: `src/WindowsDevInspector.Windows/NuGetSourcesCheck.cs`, `src/WindowsDevInspector.Windows/VisualStudioBuildToolsCheck.cs`, `src/WindowsDevInspector.Windows/BrowserAvailabilityCheck.cs`, `src/WindowsDevInspector.Windows/AndroidSdkCheck.cs`, `src/WindowsDevInspector.Windows/DotNetMauiWorkloadCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests`.
-  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
-
-- [x] Expand WSL and Docker diagnostics for MVP readiness.
-  - Completed: WSL installed/version/distribution checks now return clearer read-only summaries; Docker Desktop engine reachability uses a dedicated `docker info` check; Docker Desktop service and HNS checks can warn when expected services are not running while WinNAT remains a read-only presence/status check.
-  - Related files: `src/WindowsDevInspector.Windows/WslStatusCheck.cs`, `src/WindowsDevInspector.Windows/WslVersionCheck.cs`, `src/WindowsDevInspector.Windows/WslDistributionsCheck.cs`, `src/WindowsDevInspector.Windows/DockerDesktopCheck.cs`, `src/WindowsDevInspector.Windows/ServiceStatusCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests`.
-  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`.
-
-- [x] Complete MVP validation pass.
-  - Completed: Release build and test passed; WPF app launch smoke passed; manual WPF UI smoke checklist was completed by the user.
-  - Related files: `docs/UI_RULES.md`, `docs/TASK.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore`; `dotnet test WindowsDevInspector.sln --configuration Release --no-build`; manual WPF smoke checklist.
-
-- [x] Add MVP release documentation.
-  - Completed: added privacy statement, release notes, and demo screenshot capture plan; README and project documentation now link to the MVP release artifacts.
-  - Related files: `docs/PRIVACY.md`, `docs/RELEASE_NOTES.md`, `docs/UI_RULES.md`, `README.md`, `docs/PROJECT.md`, `docs/AI_CONTEXT.md`, `docs/TASK.md`.
-  - Verification: documentation review; build/test should be rerun before commit because repository documentation changed after the last validation run.
-
-- [x] Complete first-pass result remediation selection behavior.
-  - Completed: PASS and unsupported results cannot be selected for remediation, result detail shows compact fixability/risk/elevation/restart/Rollback/remediation context, batch selection only checks low-risk supported non-pass fixes, "修正勾選項目" shows UAC/backup/restart/Rollback/whitelist confirmation before executing selected fixes, and backup restore is disabled when no backup exists and confirms before elevated rollback.
-  - Related files: `src/WindowsDevInspector.App/CheckResultRow.cs`, `src/WindowsDevInspector.App/ResultFixSelection.cs`, `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `tests/WindowsDevInspector.App.Tests/ResultFixSelectionTests.cs`, `docs/UI_RULES.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add Chocolatey CLI availability check.
-  - Completed: added `chocolatey` to the WPF technology picker and Core catalog, backed by a read-only `choco --version` check. Missing Chocolatey reports Info because it is an optional package manager, and detected versions are informational only.
-  - Related files: `src/WindowsDevInspector.App/TechnologyCatalog.cs`, `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Windows/CommandVersionCheck.cs`, `tests/WindowsDevInspector.App.Tests/TechnologyCatalogTests.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `tests/WindowsDevInspector.Windows.Tests/CommandVersionCheckTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Align PowerShell checks with no-latest-version policy.
-  - Completed: PowerShell 7 now maps only to the `pwsh` CLI availability check, and no longer adds the PowerShell 7 winget package planning check. Windows PowerShell and PowerShell 7 may display current version output as context, but do not compare against latest versions.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `docs/CHECK_CATALOG.md`, `docs/ROADMAP.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Speed up scan execution with bounded concurrency.
-  - Completed: `EnvironmentScanService` now runs executable checks concurrently, and the WPF UI exposes a scan concurrency dropdown from 1 through the machine processor count. The default leaves one processor available.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `src/WindowsDevInspector.App/EnvironmentScanService.cs`, `src/WindowsDevInspector.App/ScanConcurrencySettings.cs`, `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`, `tests/WindowsDevInspector.App.Tests/ScanConcurrencySettingsTests.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add select-all and clear-all toggle for technology selection.
-  - Completed: replaced the one-way clear-all action with a toggle button that selects all visible technologies when not all are selected and clears all visible technologies when all are selected.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionToggleTests.cs`, `docs/UI_RULES.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add Core mappings for selected language/runtime backlog technologies.
-  - Completed: .NET Desktop Runtime, PowerShell, Flask, pytest, PHP, Rails, and Rust now resolve to concrete runtime or CLI checks instead of being ignored by the check catalog.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add Core mappings for selected tool backlog technologies.
-  - Completed: GitHub CLI, Google Cloud CLI, Windows Terminal, and SSMS now resolve to concrete checks instead of being ignored by the check catalog.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add Core mappings for selected frontend backlog technologies.
-  - Completed: React, Next.js, and Tailwind CSS now resolve to Node.js and npm checks instead of being ignored by the check catalog.
-  - Related files: `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `tests/WindowsDevInspector.Core.Tests/CheckCatalogTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add Node.js CLI executable check.
-  - Completed: `frontend.node-cli` now runs `node --version`, improving Node.js, Angular, and Vue diagnostics.
-  - Related files: `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests/BuiltInEnvironmentCheckFactoryTests.cs`, `docs/CHECK_CATALOG.md`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Restrict the WPF technology picker to the selected MVP scope.
-  - Completed: `TechnologyCatalog` now displays the 44 MVP included technologies plus the 23 selected priority backlog technologies; priority backlog items are visible but not selected by default.
-  - Related files: `src/WindowsDevInspector.App/TechnologyCatalog.cs`, `tests/WindowsDevInspector.App.Tests/TechnologyCatalogTests.cs`, `docs/MVP_TECHNOLOGY_SCOPE.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Select first-version MVP technology scope.
-  - Completed: captured 44 implemented MVP technologies and 23 priority backlog technologies selected from the HTML review artifact.
-  - Related files: `docs/MVP_TECHNOLOGY_SCOPE.md`, `artifacts/mvp-technology-selection.html`.
-  - Verification: documentation review.
-
-- [x] Add .NET runtime family checks for C# desktop and ASP.NET workflows.
-  - Completed: added read-only `dotnet --list-runtimes` checks for ASP.NET Core runtime and .NET Desktop Runtime.
-  - Related files: `src/WindowsDevInspector.Windows/DotNetRuntimeCheck.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `tests/WindowsDevInspector.Windows.Tests/DotNetRuntimeCheckTests.cs`, `docs/CHECK_CATALOG.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Expand Phase 4 tool installation planning without executing installs.
-  - Completed: added read-only winget package availability checks for pnpm, Azure CLI, kubectl, and Terraform; documented that package checks do not install or create remediation plans.
-  - Related files: `docs/CHECK_CATALOG.md`, `docs/ROADMAP.md`, `docs/DECISION.md`, `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/BuiltInEnvironmentCheckFactory.cs`, `src/WindowsDevInspector.Windows/WingetPackageAvailabilityCheck.cs`, `tests/WindowsDevInspector.Windows.Tests/WingetPackageAvailabilityCheckTests.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Align the WPF UI with technology-only selection wording.
-  - Completed: clarified that category headings are browsing aids, kept existing default suggested technologies, and added a clear-all selection action for users who want to start from an empty technology set.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `docs/UI_RULES.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Decide whether role selection is still a separate UI concept or represented only by technology groups.
-  - Completed: accepted explicit technology selection as the source of truth and removed independent role selection from the product model.
-  - Related files: `docs/DECISION.md`, `docs/PROJECT_SPEC.md`, `docs/ENVIRONMENT_PROFILES.md`, `README.md`, `AGENTS.md`, `docs/AI_CONTEXT.md`, `docs/PROJECT.md`.
-  - Verification: documentation review; build/test before publish.
-
-- [x] Establish branch workflow with `mvp` as the integration branch.
-  - Completed: retargeted the current draft PR to `mvp` and documented the branch model in `docs/DECISION.md`.
-  - Related files: `docs/DECISION.md`.
-  - Verification: PR #1 base is `mvp`; branch refs checked with git/GitHub.
-
-- [x] Standardize common notes directory on `D:\Note`.
-  - Completed: updated check ID, remediation ID, approved directory target, check catalog, setup guidance, project spec, and decision record to use `D:\Note`.
-  - Related files: `AGENTS.md`, `docs/PROJECT_SPEC.md`, `docs/CHECK_CATALOG.md`, `docs/ENVIRONMENT_PROFILES.md`, `docs/CODEX_DEVELOPMENT_SETUP.md`, `docs/DECISION.md`, `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`, `src/WindowsDevInspector.Windows/CommonCheckFactory.cs`, `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`, `src/WindowsDevInspector.Remediation/DirectoryRemediationExecutor.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Reconcile README scope wording with the now-completed remediation, backup, rollback, and scoring slices.
-  - Completed: updated README scope, architecture wording, test project list, and documentation links to reflect current implementation.
-  - Related files: `README.md`, `docs/UI_RULES.md`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add UI smoke-test checklist or automation strategy for WPF behavior.
-  - Completed: added a manual WPF UI smoke-test checklist with safety checks, exit criteria, and a staged automation strategy.
-  - Related files: `docs/UI_RULES.md`.
-  - Verification: documentation review.
-
-- [x] Create .NET 10 WPF solution structure.
-  - Completed: source and test project layout exists.
-  - Verification: represented in solution and current project files.
-
-- [x] Implement common read-only environment checks.
-  - Completed: directory, registry DWORD, PATH, command version, service, optional feature, and file checks exist.
-  - Verification: covered by Core and Windows tests.
-
-- [x] Implement technology catalog resolution.
-  - Completed: selected technology IDs resolve to deduplicated check IDs.
-  - Verification: `CheckCatalogTests`.
-
-- [x] Implement result sorting and detail display.
-  - Completed: non-pass items sort before pass items and detail panel exposes full values.
-  - Verification: `CheckResultSorterTests` and UI implementation.
-
-- [x] Persist selected technologies.
-  - Completed: selections save beside executable and reload at startup.
-  - Verification: implemented in `TechnologySelectionConfig`.
-
-- [x] Implement first safe remediation and rollback flow.
-  - Completed: directory remediation, registry DWORD remediation, elevated worker validation, encrypted backup files, and rollback exist.
-  - Verification: Remediation tests and ElevatedWorker implementation.
-
-- [x] Implement backup browser and scan report export.
-  - Completed: backup combo box and JSON report export exist in the app.
-  - Verification: recent commit `89f9a0f feat: add backup browser and scan reports`.
-
-- [x] Implement environment scoring.
-  - Completed: severity-weighted score calculation and UI display exist.
-  - Verification: `EnvironmentScoreCalculatorTests`.
-
-- [x] Record UTF-8 file reading requirement.
-  - Completed: `docs/AI_CONTEXT.md` documents that Traditional Chinese repository files are UTF-8 and must be read with explicit UTF-8 in Windows PowerShell.
-  - Verification: AGENTS, Roadmap, Codex setup, XAML, and code-behind files were re-read with `Get-Content -Raw -Encoding UTF8`.
-
-- [x] Refactor scan and remediation orchestration out of `MainWindow.xaml.cs`.
-  - Completed: scan execution, report export, remediation execution, elevated worker launch, backup listing, and rollback orchestration were moved into App-layer services.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml.cs`, `src/WindowsDevInspector.App/EnvironmentScanService.cs`, `src/WindowsDevInspector.App/EnvironmentScanResult.cs`, `src/WindowsDevInspector.App/RemediationCoordinator.cs`, `src/WindowsDevInspector.App/ScanReportExporter.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add focused tests for App-layer scan service.
-  - Completed: added `WindowsDevInspector.App.Tests` and covered executable check orchestration, pending check fallback, result sorting, scoring, and cancellation token forwarding for `EnvironmentScanService`.
-  - Related files: `tests/WindowsDevInspector.App.Tests/WindowsDevInspector.App.Tests.csproj`, `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`, `WindowsDevInspector.sln`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Make `ScanReportExporter` testable.
-  - Completed: report output directory and timestamp provider are injectable while the default app behavior still writes to LocalAppData.
-  - Related files: `src/WindowsDevInspector.App/ScanReportExporter.cs`, `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Add tests for technology selection configuration persistence.
-  - Completed: config path is injectable through `TechnologySelectionConfigStore`, with tests for missing files, malformed JSON, unknown IDs, duplicate IDs, clearing stale selections, and save ordering.
-  - Related files: `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`, `tests/WindowsDevInspector.App.Tests/TechnologySelectionConfigStoreTests.cs`.
-  - Verification: `dotnet build WindowsDevInspector.sln --no-restore` and `dotnet test WindowsDevInspector.sln --no-build`.
-
-- [x] Expand local ignore rules.
-  - Completed: `.gitignore` covers build outputs, coverage outputs, IDE state, NuGet/package folders, publish artifacts, logs, local secrets, Windows noise files, and local Codex state.
-  - Related files: `.gitignore`.
-  - Verification: `git status --ignored --short` showed build outputs and local tool folders ignored.
-
-- [x] Polish result action layout and PASS filtering.
-  - Completed: "修正勾選項目" no longer stretches into neighboring controls, report export moved to the result header, and the result list can hide PASS rows without deleting scan data.
-  - Related files: `src/WindowsDevInspector.App/MainWindow.xaml`, `src/WindowsDevInspector.App/MainWindow.xaml.cs`.
-  - Verification: manual WPF confirmation by user; `dotnet build WindowsDevInspector.sln --no-restore`; `dotnet test WindowsDevInspector.sln --no-build`.
+  - Blocker: code-signing certificate and auto-update strategy are intentionally deferred.
+  - Required decision: signing and update strategy before external release.
 
 ## Remaining TODO
 
-- [ ] Design approved installation plan schema before enabling any package installation.
-- [ ] Pending executable checks in current Core catalog: none.
-- [ ] Actual demo screenshot image files are not checked in yet; capture and inspect non-sensitive images before adding `docs/images/` assets.
+- [ ] Capture and inspect non-sensitive demo screenshots before adding image assets to the Repository.
+- [ ] Re-authenticate GitHub CLI and enable GitHub immutable releases before pushing the first release tag.
 
 ## Known Issues
 
-- [ ] `docs/CHECK_CATALOG.md` contains planning rows that are not yet in the Core catalog; they should remain documentation-only until selected for implementation.
+- [ ] `docs/CHECK_CATALOG.md` contains planning rows that are not yet in the Core catalog; they must remain documentation-only until selected for implementation.
 - [ ] Automated validation does not currently include a WPF UI smoke test.
+
+## Latest Verification
+
+- Build: `dotnet build WindowsDevInspector.sln --configuration Release --no-restore` passed with 0 warnings and 0 errors.
+- Debug build and tests passed with 0 warnings/errors and 228 tests before the executor slice.
+- Focused Release tests passed: Remediation 49/49, ElevatedWorker 3/3, and App 49/49 after the controlled execution slice.
+- Final Debug and Release solution builds passed with 0 warnings/errors; 257 tests passed in each configuration after PATH refresh, verification, shim, timeout, and compatibility coverage was added.
+- Release solution restore/build passed with the WiX installer project, 0 warnings/errors, and 260 tests after winget availability gating.
+- `scripts/Test-InstallerPackage.ps1` passed against MSI version 0.1.0 with 13 payload files and no prohibited bundled software installers.
+- Initial non-elevated per-machine install failed with MSI error 1925/exit 1603 and left no Program Files or shortcut residue, confirming transactional rollback for that failure path.
+- Elevated x64 MSI installation passed with exit 0. Product 0.1.0 registered under HKLM, installed 13 files under `C:\Program Files\WindowsDevInspector`, created the Start Menu shortcut, and launched a responsive main window that closed without a leftover process.
+- Same-version repair by ProductCode exposed expected Windows Installer source retention behavior: after the original MSI was overwritten by a rebuild with a different PackageCode, repair failed with error 1706 while the installed product remained intact. Release MSI files must be immutable artifacts.
+- Major Upgrade from 0.1.0 to 0.1.1 passed with exit 0, removed the old ProductCode, retained one 0.1.1 registration, and preserved all 13 product files and the shortcut.
+- Downgrade from 0.1.1 to 0.1.0 was rejected by `WIX_DOWNGRADE_DETECTED`/LaunchConditions with no state change.
+- Uninstall of 0.1.1 passed with exit 0 and removed product registration, Program Files payload, shortcut folder, and installer HKCU key. All six pre-existing LocalAppData report/remediation files remained present.
+- Binary metadata check confirmed the simulation marker is present in Debug App output and absent from Release App output.
+- Installation planning tests include validator, candidate mapping, preview/coordinator, and independent single-selection behavior.
+- WPF visual smoke test was attempted again but not completed because computer-use initialization still fails with `EPERM: operation not permitted` before any window control begins.
+- Framework-dependent App tests passed 56/56 and Windows checks passed 120/120 after Runtime prerequisite gating. WiX MSI build passed with 0 warnings/errors; MSI validation confirmed x64 version 0.1.0, the .NET 10 Desktop Runtime launch condition, 12 payload files, and no bundled runtime host files.
 
 ## Next Recommended Task
 
-Run `prepare-project-handoff` for the existing TASK history, then resume design of the approved installation plan schema before enabling package installation.
+Review and merge the controlled installation slice into `mvp`; then re-authenticate GitHub CLI, enable immutable releases, and deliberately push the first version tag.

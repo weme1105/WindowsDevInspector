@@ -206,14 +206,19 @@
                       Background="#FFFFFF">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="修正" Width="70">
+                        <GridViewColumn Header="操作" Width="88">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelectedForFix, Mode=TwoWay}"
-                                              IsEnabled="{Binding IsFixSelectable}"
-                                              Visibility="{Binding IsFixSelectable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    <CheckBox IsChecked="{Binding IsSelectedForAction, Mode=OneWay}"
+                                              IsEnabled="{Binding IsActionSelectionEnabled}"
+                                              Visibility="{Binding IsActionSelectable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                              Click="ResultActionCheckBox_Click"
+                                              Content="{Binding ActionLabel}"
+                                              Foreground="{Binding ActionForeground}"
+                                              FontWeight="SemiBold"
                                               HorizontalAlignment="Center"
-                                              Margin="0" />
+                                              Margin="0"
+                                              ToolTip="{Binding ActionToolTip}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -289,6 +294,10 @@
                                TextWrapping="Wrap"
                                Margin="0,8,0,0"
                                Foreground="#5D6B82" />
+                    <TextBlock Text="{Binding InstallationPlanningText}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"
+                               Foreground="{Binding ActionForeground}" />
                 </StackPanel>
             </Border>
 
@@ -298,6 +307,7 @@
                     <ColumnDefinition Width="330" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="FixAllButton"
@@ -314,10 +324,21 @@
                         Click="RestoreLatestBackupButton_Click"
                         Margin="12,0,0,0" />
                 <Button x:Name="StartFixButton"
-                        Grid.Column="4"
+                        Grid.Column="5"
                         Content="修正勾選項目"
                         Click="StartFixButton_Click"
                         MinWidth="120"
+                        HorizontalAlignment="Right" />
+                <Button x:Name="StartInstallationButton"
+                        Grid.Column="4"
+                        Content="執行套件安裝"
+                        Click="StartInstallationButton_Click"
+                        IsEnabled="False"
+                        Foreground="#B42318"
+                        BorderBrush="#B42318"
+                        Background="#FFF5F5"
+                        Margin="12,0,0,0"
+                        MinWidth="132"
                         HorizontalAlignment="Right" />
             </Grid>
         </Grid>

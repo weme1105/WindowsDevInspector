@@ -44,6 +44,8 @@ WindowsDevInspector.sln
 │  ├─ WindowsDevInspector.Windows.Tests
 │  ├─ WindowsDevInspector.Remediation.Tests
 │  └─ WindowsDevInspector.ElevatedWorker.Tests
+├─ installer
+│  └─ WindowsDevInspector.Installer
 ├─ profiles
 ├─ docs
 └─ artifacts
@@ -115,7 +117,9 @@ WindowsDevInspector.App
 - `WindowsDevInspector.Core`: check definitions, technology definitions, check catalog, result model, sorting, risk, severity, and environment score.
 - `WindowsDevInspector.Windows`: read-only environment checks and Windows abstractions.
 - `WindowsDevInspector.Remediation`: change plan validation, remediation whitelist, directory remediation, registry DWORD remediation, backup, and rollback support.
-- `WindowsDevInspector.ElevatedWorker`: elevated registry remediation and rollback execution.
+- `WindowsDevInspector.ElevatedWorker`: elevated registry remediation, rollback, and controlled single-package installation execution.
+- `WindowsDevInspector.Installer`: unsigned WiX v5 MSI authoring for WindowsDevInspector files, Major Upgrade, and Start Menu shortcut lifecycle; generated MSI/CAB artifacts are not versioned.
+- `scripts/Test-InstallerPackage.ps1`: read-only MSI database validation for product identity, App/Worker payload, Major Upgrade rows, shortcut target, and prohibited bundled software names.
 
 ## External Integrations
 
@@ -130,13 +134,13 @@ WindowsDevInspector.App
 
 - Runtime: .NET 10.
 - Desktop UI: WPF.
-- Deployment: local Windows desktop app. Installer, signing, auto update, and release packaging are not yet implemented.
+- Deployment: framework-dependent local Windows desktop app. The unsigned x64 WiX MSI requires .NET 10 Desktop Runtime x64 and does not bundle it; signing, auto update, and external release publishing remain deferred.
 
 ## Current Project Status
 
 The project has completed the initial diagnostic MVP plus Windows baseline checks, executable checks for all current Core catalog IDs, clarified WSL/Docker diagnostics, advanced read-only Windows diagnostics for firewall profiles, localhost bind health, Code Integrity events, and Smart App Control state, the first safe remediation, reversible backup and rollback for approved remediation IDs, scan report, scoring, App-layer service extraction, App service test coverage, WPF smoke-test documentation, MVP technology scope, select-all technology selection, and first-pass result remediation selection behavior.
 
-The next development phase should focus on approved installation-plan design, installer/signing decisions, and eventual WPF automation or ViewModel extraction.
+The next development phase should focus on installer/signing decisions and eventual WPF automation or ViewModel extraction.
 
 ## Known Constraints
 

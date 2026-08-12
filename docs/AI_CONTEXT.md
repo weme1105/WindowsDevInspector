@@ -89,6 +89,21 @@ Current implementation note: `WindowsDevInspector.App/MainWindow.xaml.cs` handle
 - Do not modify registry values without backup.
 - All remediation must use approved remediation IDs.
 - Automatic encrypted backup and rollback apply to all currently approved remediation IDs. Registry DWORD rollback goes through `ElevatedWorker`; directory rollback is handled in App-layer remediation code and deletes only tool-created directories that are still empty.
+- Controlled package installation accepts exactly one typed package/source/action item from `BuiltInInstallationCatalog`; execution metadata is catalog-owned and unknown JSON fields are rejected.
+- App-layer selection is preview-only. A separate red execution button and second confirmation launch ElevatedWorker `--install`; App never invokes winget directly.
+- The WPF result list uses one `操作` column: remediation rows show `修正`, while package candidates show red `安裝`. Confirming one installation candidate clears and disables remediation selection plus other package candidates; clearing installation mode re-enables them. Cancelling the warning preserves existing remediation selections.
+- Debug builds inject one simulated remediation row and one simulated installation row for UI smoke testing. Both are excluded from real execution; Release builds do not insert the rows.
+- ElevatedWorker reconstructs the exact approved winget tokens, accepts package/source agreements, enforces a five-minute timeout, and kills the process tree on timeout/cancellation. Silent, override, forced scope/version, and automatic rollback are excluded.
+- After winget succeeds, ElevatedWorker refreshes only its own process PATH from current machine/user values and runs the catalog-owned verification executable/arguments with a 30-second timeout. A failed or timed-out verification makes the structured overall result unsuccessful without exposing command stdout/stderr.
+- App shows a real installation action only when the package's current-scan exact winget availability check is PASS; missing winget, unresolved IDs, failures, and timeouts hide it.
+- The unsigned WiX v5 installer packages only WindowsDevInspector output. It does not bundle third-party tools or runtime installers, and generated MSI/CAB files remain ignored build artifacts.
+- Deployment is framework-dependent. WiX requires .NET 10 Desktop Runtime x64 before first installation, while every App scan runs the same Common prerequisite and disables all modifying actions when the result is missing or non-PASS.
+- Installer authoring includes only root framework-dependent output; MSI validation caps payload count and rejects runtime host files to prevent stale self-contained publish output from entering the MSI.
+- CI restores/builds the WiX project on `windows-latest`, validates MSI contents without uploading the unsigned MSI, and runs only for pushes/PRs on `main` and `mvp`.
+- The installer project and solution configurations are pinned to x64; MSI database validation rejects non-x64 Template Summary values.
+- Installer version is build-parameter driven (`WdiProductVersion`, default 0.1.0). Real lifecycle validation passed for install, 0.1.0→0.1.1 Major Upgrade, downgrade rejection, uninstall, failure rollback, and LocalAppData preservation.
+- MSI repair requires the exact original package source. Versioned release MSI artifacts must be immutable and retained outside Git; rebuilding an MSI at the same path can change PackageCode and break repair source resolution.
+- GitHub Releases is the canonical MSI artifact store. A `vMAJOR.MINOR.PATCH` tag reachable from `main` or `mvp` builds a version-matched unsigned prerelease plus SHA-256 file; the workflow refuses existing releases and never overwrites assets.
 
 ## Build Commands
 
@@ -151,6 +166,10 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.App/ScanReportExporter.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionConfig.cs`
 - `src/WindowsDevInspector.App/TechnologySelectionToggle.cs`
+- `src/WindowsDevInspector.App/PackageInstallationCandidateSelector.cs`
+- `src/WindowsDevInspector.App/PackageInstallationConfirmationBuilder.cs`
+- `src/WindowsDevInspector.App/PackageInstallationCoordinator.cs`
+- `src/WindowsDevInspector.App/PackageInstallationSelection.cs`
 - `src/WindowsDevInspector.Core/BuiltInCheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckCatalog.cs`
 - `src/WindowsDevInspector.Core/CheckResultSorter.cs`
@@ -159,6 +178,11 @@ No separate lint or format command is currently documented. Build enforces code 
 - `src/WindowsDevInspector.Windows/ProcessCommandRunner.cs`
 - `src/WindowsDevInspector.Remediation/BuiltInRemediationCatalog.cs`
 - `src/WindowsDevInspector.Remediation/ChangePlanValidator.cs`
+- `src/WindowsDevInspector.Remediation/InstallationPlanValidator.cs`
+- `src/WindowsDevInspector.Remediation/BuiltInInstallationCatalog.cs`
+- `src/WindowsDevInspector.Remediation/PackageInstallationCommandPreviewBuilder.cs`
+- `src/WindowsDevInspector.Remediation/PackageInstallationExecutor.cs`
+- `src/WindowsDevInspector.Remediation/DisabledPackageInstallationProcessRunner.cs`
 - `src/WindowsDevInspector.ElevatedWorker/Program.cs`
 - `tests/WindowsDevInspector.App.Tests/EnvironmentScanServiceTests.cs`
 - `tests/WindowsDevInspector.App.Tests/ScanReportExporterTests.cs`
@@ -202,7 +226,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - localhost bind diagnostics may open a short-lived ephemeral listener on `127.0.0.1` through `ILocalhostBindProbe`, then close it immediately; they must not reserve fixed ports or modify firewall/network configuration.
 - Code Integrity diagnostics use read-only `wevtutil` queries against `Microsoft-Windows-CodeIntegrity/Operational`; they must not change event log channels or Windows security policy.
 - Smart App Control diagnostics inspect `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState` read-only when present; they must never disable or toggle Smart App Control.
-- Current known validation count is 198 passing tests after advanced Windows diagnostics and catalog gap tests were added on top of `origin/mvp`.
+- Current known validation count is 236 passing Release tests after the fail-closed executor and shared command-preview tests.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
