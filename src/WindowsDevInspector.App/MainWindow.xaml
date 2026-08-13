@@ -327,6 +327,7 @@
                         Grid.Column="5"
                         Content="修正勾選項目"
                         Click="StartFixButton_Click"
+                        IsEnabled="False"
                         MinWidth="120"
                         HorizontalAlignment="Right" />
                 <Button x:Name="StartInstallationButton"

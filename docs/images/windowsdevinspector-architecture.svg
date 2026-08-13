@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860">
+  <defs>
+    <style>
+      .title { font: 700 32px Segoe UI, Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 400 17px Segoe UI, Arial, sans-serif; fill: #486581; }
+      .heading { font: 700 22px Segoe UI, Arial, sans-serif; fill: #102a43; }
+      .body { font: 400 17px Segoe UI, Arial, sans-serif; fill: #243b53; }
+      .small { font: 400 15px Segoe UI, Arial, sans-serif; fill: #486581; }
+      .box { stroke: #829ab1; stroke-width: 2; rx: 14; }
+      .arrow { stroke: #627d98; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#627d98" />
+    </marker>
+  </defs>
+  <rect width="1400" height="860" fill="#f7fafc"/>
+  <text x="70" y="70" class="title">WindowsDevInspector — Layered Architecture</text>
+  <text x="70" y="103" class="subtitle">MVVM-oriented WPF application with read-only diagnostics and controlled remediation</text>
+
+  <rect x="70" y="145" width="1260" height="130" class="box" fill="#d9eaf7"/>
+  <text x="105" y="188" class="heading">WindowsDevInspector.App</text>
+  <text x="105" y="222" class="body">WPF UI · technology selection · result display · scoring · report export</text>
+  <text x="105" y="250" class="small">Application services coordinate scanning, remediation, backup and rollback</text>
+
+  <path d="M 700 275 L 700 330" class="arrow"/>
+  <rect x="70" y="335" width="390" height="245" class="box" fill="#e3fcef"/>
+  <text x="100" y="380" class="heading">Core</text>
+  <text x="100" y="420" class="body">Check definitions</text>
+  <text x="100" y="452" class="body">Technology catalog</text>
+  <text x="100" y="484" class="body">Result models and sorting</text>
+  <text x="100" y="516" class="body">Environment scoring</text>
+  <text x="100" y="551" class="small">Platform-independent domain logic</text>
+
+  <rect x="505" y="335" width="390" height="245" class="box" fill="#fff3bf"/>
+  <text x="535" y="380" class="heading">Windows</text>
+  <text x="535" y="420" class="body">Registry and service checks</text>
+  <text x="535" y="452" class="body">CLI and process inspection</text>
+  <text x="535" y="484" class="body">WSL and Docker diagnostics</text>
+  <text x="535" y="516" class="body">Firewall and security checks</text>
+  <text x="535" y="551" class="small">Read-only Windows integration layer</text>
+
+  <rect x="940" y="335" width="390" height="245" class="box" fill="#fde2e1"/>
+  <text x="970" y="380" class="heading">Remediation</text>
+  <text x="970" y="420" class="body">Approved remediation IDs</text>
+  <text x="970" y="452" class="body">Risk and plan validation</text>
+  <text x="970" y="484" class="body">DPAPI-protected backups</text>
+  <text x="970" y="516" class="body">Rollback support</text>
+  <text x="970" y="551" class="small">Whitelist-only change workflow</text>
+
+  <path d="M 265 580 L 265 645 L 700 645 L 700 690" class="arrow"/>
+  <path d="M 700 580 L 700 690" class="arrow"/>
+  <path d="M 1135 580 L 1135 645 L 700 645" class="arrow"/>
+  <rect x="420" y="695" width="560" height="105" class="box" fill="#e8daef"/>
+  <text x="455" y="738" class="heading">ElevatedWorker</text>
+  <text x="455" y="771" class="body">UAC-isolated execution of approved privileged operations</text>
+</svg>

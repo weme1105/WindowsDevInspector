@@ -10,7 +10,7 @@ public sealed class MainWindowActionStateTests
         MainWindowActionState state = new();
         state.SetInstallationSelection(isSelected: true, isExecutable: true);
 
-        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true);
+        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true, hasSelectedFixes: false);
 
         Assert.False(availability.CanSelectRemediation);
         Assert.False(availability.CanSelectInstallation);
@@ -28,7 +28,7 @@ public sealed class MainWindowActionStateTests
         state.SetBusy(true);
         state.SetBusy(false);
 
-        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true);
+        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true, hasSelectedFixes: false);
 
         Assert.False(availability.CanStartFix);
         Assert.False(availability.CanRestoreBackup);
@@ -40,7 +40,7 @@ public sealed class MainWindowActionStateTests
         MainWindowActionState state = new();
         state.SetRuntimeReady(true);
 
-        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true);
+        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true, hasSelectedFixes: true);
 
         Assert.True(availability.CanSelectRemediation);
         Assert.True(availability.CanSelectInstallation);
@@ -57,7 +57,7 @@ public sealed class MainWindowActionStateTests
         state.SetRuntimeReady(true);
         state.SetInstallationSelection(isSelected: true, isExecutable: true);
 
-        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true);
+        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true, hasSelectedFixes: true);
 
         Assert.False(availability.CanStartFix);
         Assert.False(availability.CanRestoreBackup);
@@ -72,11 +72,25 @@ public sealed class MainWindowActionStateTests
         state.SetInstallationSelection(isSelected: true, isExecutable: true);
         state.SetBusy(true);
 
-        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true);
+        MainWindowActionAvailability availability = state.Evaluate(hasBackups: true, hasSelectedFixes: true);
 
         Assert.False(availability.CanStartInstallation);
         Assert.False(availability.CanSelectInstallation);
         Assert.False(availability.CanStartFix);
         Assert.False(availability.CanRestoreBackup);
+    }
+
+    [Fact]
+    public void Evaluate_DisablesStartFixWhenNoFixIsSelected()
+    {
+        MainWindowActionState state = new();
+        state.SetRuntimeReady(true);
+
+        MainWindowActionAvailability availability = state.Evaluate(
+            hasBackups: false,
+            hasSelectedFixes: false);
+
+        Assert.False(availability.CanStartFix);
+        Assert.True(availability.CanSelectRemediation);
     }
 }

@@ -101,6 +101,8 @@ Out of scope for the current implementation:
 
 ## High-Level Architecture
 
+![WindowsDevInspector layered architecture](images/windowsdevinspector-architecture.svg)
+
 ```text
 WindowsDevInspector.App
   -> WindowsDevInspector.Core

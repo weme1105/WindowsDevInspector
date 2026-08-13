@@ -230,7 +230,7 @@ No separate lint or format command is currently documented. Build enforces code 
 - localhost bind diagnostics may open a short-lived ephemeral listener on `127.0.0.1` through `ILocalhostBindProbe`, then close it immediately; they must not reserve fixed ports or modify firewall/network configuration.
 - Code Integrity diagnostics use read-only `wevtutil` queries against `Microsoft-Windows-CodeIntegrity/Operational`; they must not change event log channels or Windows security policy.
 - Smart App Control diagnostics inspect `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState` read-only when present; they must never disable or toggle Smart App Control.
-- Current known validation count is 236 passing Release tests after the fail-closed executor and shared command-preview tests.
+- Current known validation count is 286 passing Release tests after the remediation-button availability fix.
 - A running `WindowsDevInspector.App` can produce MSB3026/MSB3027/MSB3021 copy-lock warnings during build. If this happens, close the app and rebuild before claiming a clean 0-warning build.
 
 ## Prohibited Changes
