@@ -1,0 +1,4 @@
+interface:
+  display_name: "WindowsDevInspector Release"
+  short_description: "Build and publish a safe WindowsDevInspector release"
+  default_prompt: "Use $windowsdevinspector-release to validate and publish the next WindowsDevInspector release."

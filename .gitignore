@@ -72,3 +72,4 @@ appsettings.*.local.json
 
 # Codex / local tooling
 .codex/
+codex-insights/
