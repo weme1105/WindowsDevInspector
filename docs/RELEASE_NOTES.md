@@ -32,7 +32,7 @@ Status: `v0.1.0` published as an unsigned immutable GitHub prerelease.
 ### Validated
 
 - Release build passed with 0 warnings and 0 errors.
-- Release and Debug builds passed with 0 warnings/errors; 285 tests passed in each configuration.
+- The latest Release solution build passed after the remediation-button availability fix; all 286 tests passed with 0 failures and 0 skipped. The earlier Debug validation passed 285 tests before that focused regression test was added.
 - Release workflow restore, versioned build, tests, MSI validation, and immutable prerelease creation passed.
 - Published MSI SHA-256 was independently downloaded and matched the published checksum.
 - WPF App process smoke passed. The final Debug simulation-row visual checklist remains pending because the computer-use helper could not initialize.
@@ -51,6 +51,7 @@ Status: `v0.1.0` published as an unsigned immutable GitHub prerelease.
 - Hardened MSI payload validation against stale self-contained output by packaging only root application files, limiting payload count, and rejecting .NET runtime host binaries.
 - Added a tag-driven GitHub prerelease workflow that derives MSI version from `vMAJOR.MINOR.PATCH`, runs full validation, publishes a versioned MSI plus SHA-256, and refuses overwrite of an existing release. A failed pre-publication run can safely retry the same unmoved tag through the default-branch workflow.
 - Centralized WPF modifying-action availability so failed Runtime prerequisites cannot be overwritten by workflow cleanup, and added pure state-policy regression tests.
+- Disabled `修正勾選項目` until at least one executable remediation is selected; clearing the selection disables it again.
 - Replaced ad hoc ElevatedWorker CLI mode parsing with typed command parsing/routing while preserving all existing argument forms, JSON contracts, usage behavior, and exit codes.
 - Code signing and auto update are not implemented. The current unsigned MSI is a prerelease for local/internal validation only.
 - Automated validation does not yet include a Windows UI automation harness.
