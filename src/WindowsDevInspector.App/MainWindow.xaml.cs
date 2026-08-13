@@ -572,7 +572,10 @@ public partial class MainWindow : Window
 
     private void RefreshActionAvailability()
     {
-        MainWindowActionAvailability availability = actionState.Evaluate(BackupFiles.Count > 0);
+        bool hasSelectedFixes = ResultFixSelection.GetSelectedFixes(Results).Length > 0;
+        MainWindowActionAvailability availability = actionState.Evaluate(
+            hasBackups: BackupFiles.Count > 0,
+            hasSelectedFixes: hasSelectedFixes);
         StartFixButton.IsEnabled = availability.CanStartFix;
         FixAllButton.IsEnabled = availability.CanSelectLowRiskFixes;
         RestoreLatestBackupButton.IsEnabled = availability.CanRestoreBackup;

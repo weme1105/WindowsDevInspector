@@ -20,14 +20,14 @@ public sealed class MainWindowActionState
         HasExecutableInstallationSelection = isSelected && isExecutable;
     }
 
-    public MainWindowActionAvailability Evaluate(bool hasBackups)
+    public MainWindowActionAvailability Evaluate(bool hasBackups, bool hasSelectedFixes)
     {
         bool remediationEnabled = IsRuntimeReady && !IsBusy && !IsInstallationMode;
         return new MainWindowActionAvailability
         {
             CanSelectRemediation = remediationEnabled,
             CanSelectInstallation = IsRuntimeReady && !IsBusy,
-            CanStartFix = remediationEnabled,
+            CanStartFix = remediationEnabled && hasSelectedFixes,
             CanSelectLowRiskFixes = remediationEnabled,
             CanRestoreBackup = remediationEnabled && hasBackups,
             CanStartInstallation = IsRuntimeReady
